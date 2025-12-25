@@ -1,26 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Design Variables: Light Theme / Black & White */
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 245, 245, 245; /* Very light grey start */
+  --background-end-rgb: 255, 255, 255;   /* Pure white end */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  color: rgb(var(--foreground-rgb));
+  /* Creates the subtle vertical gradient background */
+  background: linear-gradient(
+      to bottom,
+      rgb(var(--background-start-rgb)),
+      rgb(var(--background-end-rgb))
+    )
+    no-repeat min-h-screen;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* THE GLASS EFFECT CLASS */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.4);       /* 40% opacity white */
+  backdrop-filter: blur(12px);                /* The blur magic */
+  -webkit-backdrop-filter: blur(12px);        /* For Safari support */
+  border: 1px solid rgba(255, 255, 255, 0.6); /* Semi-transparent border */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05); /* Very subtle shadow */
 }
