@@ -116,7 +116,7 @@ export default function AdminDashboard() {
         {/* HEADER: Flex-col on mobile for stacking */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-12 glass-panel p-6 rounded-2xl gap-4">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2"><LayoutGrid /> Admin Studio</h1>
+            <h1 className="text-2xl font-bold flex items-center gap-2"><LayoutGrid /> Admin Dashboard</h1>
             <p className="text-gray-500 text-sm">Welcome back, Chief.</p>
           </div>
           <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-4">
