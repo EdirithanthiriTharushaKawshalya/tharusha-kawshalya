@@ -104,7 +104,7 @@ export default function AdminDashboard() {
     router.push("/");
   };
 
-  if (loading) return <div className="h-screen flex items-center justify-center">Loading Studio...</div>;
+  if (loading) return <div className="h-screen flex items-center justify-center">Loading Dashboard...</div>;
 
   return (
     // UPDATED: Reduced padding on mobile (p-4)
