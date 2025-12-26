@@ -9,7 +9,6 @@ import { ArrowRight, Terminal, Layers, Code2, Cpu, ExternalLink, Image as ImageI
 export default function Home() {
   const [projects, setProjects] = useState<any[]>([]);
 
-  // 1. FETCH PROJECTS
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -32,6 +31,10 @@ export default function Home() {
       {/* --- SECTION 1: HERO --- */}
       <section className="relative min-h-[90vh] flex flex-col justify-center items-center overflow-hidden px-4">
         
+        {/* ADDED: Background Grid */}
+        <div className="absolute inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+
+        {/* Blur Spots */}
         <div className="absolute top-1/4 left-1/4 w-32 md:w-64 h-32 md:h-64 bg-blue-100/30 rounded-full blur-3xl -z-10"></div>
         <div className="absolute bottom-1/4 right-1/4 w-32 md:w-64 h-32 md:h-64 bg-gray-100/30 rounded-full blur-3xl -z-10"></div>
 
@@ -191,7 +194,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* --- SECTION 3: PHILOSOPHY (NEW SECTION) --- */}
+      {/* --- SECTION 3: PHILOSOPHY --- */}
       <section className="py-24 bg-gray-50/50 border-t border-gray-200 relative">
         <div className="max-w-6xl mx-auto px-4">
           <div className="mb-16 md:text-center max-w-3xl mx-auto">
@@ -205,7 +208,6 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Card 1 */}
             <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
               <div className="w-14 h-14 bg-black text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-black/20">
                 <Zap size={28} />
@@ -216,7 +218,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Card 2 */}
             <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
               <div className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-600/20">
                 <Smartphone size={28} />
@@ -227,7 +228,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Card 3 */}
             <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
               <div className="w-14 h-14 bg-green-500 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-green-500/20">
                 <ShieldCheck size={28} />

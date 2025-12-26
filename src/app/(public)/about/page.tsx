@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { Download, GraduationCap, Briefcase, Calendar, Building2, User } from "lucide-react";
+import { Download, GraduationCap, Briefcase, Calendar, User } from "lucide-react";
 
 export default function AboutPage() {
   const containerVariants = {
@@ -17,8 +17,12 @@ export default function AboutPage() {
   };
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen py-12 relative">
+      
+      {/* ADDED: Background Grid */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+
+      <div className="max-w-6xl mx-auto px-4">
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -26,13 +30,13 @@ export default function AboutPage() {
           className="grid grid-cols-1 md:grid-cols-3 gap-6"
         >
           
-          {/* --- BLOCK 1: INTRO (Clean & Professional) --- */}
+          {/* --- BLOCK 1: INTRO --- */}
           <motion.div variants={itemVariants} className="md:col-span-2 glass-panel p-6 md:p-12 rounded-3xl flex flex-col justify-center">
             <h1 className="text-4xl font-bold mb-6 text-black">
               Software Engineer & <br /> <span className="text-gray-400">Creative Designer.</span>
             </h1>
             <p className="text-gray-600 leading-relaxed mb-8 text-lg">
-              I'm <strong>Edirithanthiri Tharusha Kawshalya</strong>. I bridge the gap between complex backend logic and beautiful frontend design. 
+              I’m <strong>Edirithanthiri Tharusha Kawshalya</strong>. I bridge the gap between complex backend logic and beautiful frontend design. 
               Currently nearing the end of my degree, I am applying my skills in the real world to build robust software solutions.
             </p>
             
@@ -43,14 +47,21 @@ export default function AboutPage() {
             </div>
           </motion.div>
 
-          {/* --- BLOCK 2: PHOTO PLACEHOLDER (New "Digital Frame" Look) --- */}
-          <motion.div variants={itemVariants} className="glass-panel p-6 md:p-4 rounded-3xl h-full min-h-[300px] flex items-center justify-center relative overflow-hidden group">
-             {/* TODO: When you have a photo, remove the <div> below and use:*/}
-                <img src="/DSC_3440.jpg" alt="Me" className="w-full h-full object-cover rounded-2xl" />
-             
+          {/* --- BLOCK 2: PHOTO PLACEHOLDER --- */}
+          <motion.div variants={itemVariants} className="glass-panel p-4 rounded-3xl h-full min-h-[300px] flex items-center justify-center relative overflow-hidden group">
+             <div className="w-full h-full rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">
+                <div className="p-4 bg-white rounded-full shadow-sm mb-3 relative">
+                  <User size={32} className="text-gray-300" />
+                  <span className="absolute top-0 right-0 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-black"></span>
+                  </span>
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-widest text-gray-300">Upload Photo</span>
+             </div>
           </motion.div>
 
-          {/* --- BLOCK 3: EXPERIENCE (Full Width) --- */}
+          {/* --- BLOCK 3: EXPERIENCE --- */}
           <motion.div variants={itemVariants} className="md:col-span-3 glass-panel p-6 md:p-10 rounded-3xl">
             <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
               <div className="p-2 bg-black text-white rounded-lg"><Briefcase size={20} /></div>
@@ -58,7 +69,6 @@ export default function AboutPage() {
             </h2>
             
             <div className="grid md:grid-cols-2 gap-12">
-              {/* Job 1 */}
               <div className="relative pl-6 border-l-2 border-gray-200">
                 <div className="absolute -left-[9px] top-0 w-4 h-4 bg-black rounded-full outline outline-4 outline-white"></div>
                 <h3 className="font-bold text-xl">Intern Software Engineer</h3>
@@ -71,7 +81,6 @@ export default function AboutPage() {
                 </p>
               </div>
 
-              {/* Job 2 */}
               <div className="relative pl-6 border-l-2 border-gray-200">
                 <div className="absolute -left-[9px] top-0 w-4 h-4 bg-gray-300 rounded-full outline outline-4 outline-white"></div>
                 <h3 className="font-bold text-xl">Graphic Designer (Part-time)</h3>
@@ -86,7 +95,7 @@ export default function AboutPage() {
             </div>
           </motion.div>
 
-          {/* --- BLOCK 4: EDUCATION (Full Width) --- */}
+          {/* --- BLOCK 4: EDUCATION --- */}
           <motion.div variants={itemVariants} className="md:col-span-3 glass-panel p-6 md:p-10 rounded-3xl">
             <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
               <div className="p-2 bg-gray-100 text-black rounded-lg"><GraduationCap size={20} /></div>
@@ -94,21 +103,16 @@ export default function AboutPage() {
             </h2>
             
             <div className="grid md:grid-cols-3 gap-8">
-              {/* Edu 1 */}
               <div className="group hover:bg-white/40 p-4 rounded-xl transition-colors">
                 <h3 className="font-bold text-lg">BSc Computer Science</h3>
                 <p className="text-gray-600 mt-1">University of Westminster</p>
                 <p className="text-xs font-bold text-gray-400 mt-2 uppercase tracking-wide">Reading</p>
               </div>
-
-              {/* Edu 2 */}
               <div className="group hover:bg-white/40 p-4 rounded-xl transition-colors">
                 <h3 className="font-bold text-lg">Foundation for HE</h3>
                 <p className="text-gray-600 mt-1">Informatics Institute of Technology</p>
                 <p className="text-xs font-bold text-gray-400 mt-2 uppercase tracking-wide">Completed</p>
               </div>
-
-              {/* Edu 3 */}
               <div className="group hover:bg-white/40 p-4 rounded-xl transition-colors">
                 <h3 className="font-bold text-lg">Primary & Secondary</h3>
                 <p className="text-gray-600 mt-1">Dharmasoka College</p>

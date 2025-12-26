@@ -35,8 +35,11 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="w-full flex flex-col justify-center items-center pt-24 pb-12 px-4">
+    <div className="min-h-[90dvh] w-full flex flex-col justify-center items-center px-4 relative">
       
+      {/* ADDED: Background Grid */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+
       <div className="max-w-5xl w-full">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -45,7 +48,6 @@ export default function ContactPage() {
           className="glass-panel rounded-3xl overflow-hidden grid md:grid-cols-2 shadow-2xl shadow-black/5"
         >
           
-          {/* --- LEFT COLUMN: INFO & CONTEXT --- */}
           <div className="bg-black text-white p-8 md:p-12 flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
@@ -59,7 +61,6 @@ export default function ContactPage() {
             </div>
 
             <div className="space-y-6 mt-10">
-              {/* Email Item */}
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-white/10 rounded-lg">
                   <Mail size={20} />
@@ -79,7 +80,6 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              {/* Location Item */}
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-white/10 rounded-lg">
                   <MapPin size={20} />
@@ -90,7 +90,6 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              {/* Socials Row */}
               <div className="flex gap-4 mt-2">
                 <a href="https://github.com" target="_blank" className="p-3 bg-white/10 rounded-full hover:bg-white hover:text-black transition-all">
                   <Github size={20} />
@@ -102,7 +101,6 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* --- RIGHT COLUMN: THE FORM --- */}
           <div className="p-8 md:p-12 bg-white/50 relative">
             
             {status === "success" ? (
@@ -131,7 +129,7 @@ export default function ContactPage() {
                   <input
                     required
                     type="text"
-                    className="w-full bg-white p-3 rounded-lg border border-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
+                    className="w-full bg-white p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all text-base"
                     placeholder="John Doe"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -143,7 +141,7 @@ export default function ContactPage() {
                   <input
                     required
                     type="email"
-                    className="w-full bg-white p-3 rounded-lg border border-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
+                    className="w-full bg-white p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all text-base"
                     placeholder="john@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -155,7 +153,7 @@ export default function ContactPage() {
                   <textarea
                     required
                     rows={4}
-                    className="w-full bg-white p-3 rounded-lg border border-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all resize-none"
+                    className="w-full bg-white p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all resize-none text-base"
                     placeholder="Tell me about your project..."
                     value={formData.message}
                     onChange={(e) => setFormData({...formData, message: e.target.value})}

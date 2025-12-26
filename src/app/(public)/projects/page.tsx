@@ -3,21 +3,19 @@ import { useEffect, useState } from "react";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { motion, AnimatePresence } from "framer-motion";
-import { Folder, ExternalLink, Github, Code2, Loader2, Search, ArrowRight } from "lucide-react";
+import { Folder, Code2, Search } from "lucide-react";
 import Link from "next/link";
 
-// Define the shape of a Project
 interface Project {
   id: string;
   title: string;
   description: string;
   tech: string[];
-  link?: string; // Live Demo
-  github?: string; // Repo Link (Optional)
-  category?: string; // e.g., "Frontend", "Fullstack"
+  link?: string; 
+  category?: string;
+  image?: string;
 }
 
-// Filter Categories
 const categories = ["All", "Fullstack", "Frontend", "Backend", "Mobile"];
 
 export default function ProjectsPage() {
@@ -28,7 +26,6 @@ export default function ProjectsPage() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // Fetch projects ordered by creation time if available, or default
         const q = query(collection(db, "projects")); 
         const querySnapshot = await getDocs(q);
         const projectList = querySnapshot.docs.map((doc) => ({
@@ -42,20 +39,21 @@ export default function ProjectsPage() {
         setLoading(false);
       }
     };
-
     fetchProjects();
   }, []);
 
-  // Filter Logic (Client-side is fast enough for portfolios)
   const filteredProjects = activeFilter === "All" 
     ? projects 
     : projects.filter(p => p.category === activeFilter || p.tech.some(t => t.includes(activeFilter)));
 
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen py-12 relative">
+      
+      {/* ADDED: Background Grid */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+
+      <div className="max-w-7xl mx-auto px-4">
         
-        {/* HEADER SECTION */}
         <div className="text-center max-w-2xl mx-auto mb-16">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-black text-white rounded-2xl shadow-xl shadow-black/20">
@@ -85,26 +83,22 @@ export default function ProjectsPage() {
           ))}
         </div>
 
-        {/* CONTENT AREA */}
         {loading ? (
-          // SKELETON LOADING STATE
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-64 bg-gray-100 rounded-3xl animate-pulse"></div>
             ))}
           </div>
         ) : filteredProjects.length === 0 ? (
-          // EMPTY STATE
           <div className="text-center py-20 opacity-50">
             <Search size={48} className="mx-auto mb-4" />
             <p className="text-xl font-bold">No projects found.</p>
             <p>Try selecting a different category.</p>
           </div>
         ) : (
-          // PROJECTS GRID
           <motion.div 
             layout
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             <AnimatePresence>
               {filteredProjects.map((project) => (
@@ -118,11 +112,11 @@ export default function ProjectsPage() {
                     className="glass-panel p-6 rounded-3xl flex flex-col h-full hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer"
                   >
                     
-                    {/* IMAGE HEADER - Shows Image if available, otherwise shows Folder Icon */}
+                    {/* IMAGE HEADER */}
                     <div className="h-48 bg-gray-50 rounded-2xl mb-6 flex items-center justify-center border border-gray-100 group-hover:bg-gray-100 transition-colors relative overflow-hidden">
-                      {(project as any).image ? (
+                      {project.image ? (
                         <img 
-                          src={(project as any).image} 
+                          src={project.image} 
                           alt={project.title} 
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
@@ -131,14 +125,12 @@ export default function ProjectsPage() {
                       )}
                     </div>
 
-                    {/* Content */}
                     <div className="flex-grow">
                       <h3 className="text-xl font-bold mb-2 text-black line-clamp-1">{project.title}</h3>
                       <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed">
                         {project.description}
                       </p>
                       
-                      {/* Tech Tags */}
                       <div className="flex flex-wrap gap-2 mb-6">
                         {project.tech.slice(0, 4).map((t) => (
                           <span key={t} className="text-xs font-bold bg-gray-100 px-2 py-1 rounded-md text-gray-600 border border-gray-200">
@@ -151,11 +143,6 @@ export default function ProjectsPage() {
                           </span>
                         )}
                       </div>
-                    </div>
-
-                    {/* Footer / View Case Study Link */}
-                    <div className="mt-auto pt-6 flex items-center text-sm font-bold text-gray-400 group-hover:text-black transition-colors">
-                      View Case Study <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
                     </div>
 
                   </motion.div>

@@ -2,7 +2,6 @@
 import { motion } from "framer-motion";
 import { Layout, Database, Terminal, Cpu, Layers } from "lucide-react";
 
-// Data Structure for your Skills
 const skillCategories = [
   {
     id: "frontend",
@@ -64,11 +63,13 @@ export default function SkillsPage() {
   };
 
   return (
-    <div className="min-h-screen py-12">
+    <div className="min-h-screen py-12 relative">
       
+      {/* ADDED: Background Grid */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+
       <div className="max-w-6xl mx-auto px-4">
         
-        {/* Page Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -85,7 +86,6 @@ export default function SkillsPage() {
           </p>
         </motion.div>
 
-        {/* Skills Grid */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -96,7 +96,6 @@ export default function SkillsPage() {
             <motion.div
               key={category.id}
               variants={itemVariants}
-              // The third item spans full width on medium screens for balance
               className={`glass-panel p-8 rounded-3xl hover:border-black/20 transition-colors ${
                 index === 2 ? "md:col-span-2" : ""
               }`}
@@ -117,7 +116,6 @@ export default function SkillsPage() {
                     key={skill}
                     className="group relative bg-white/50 border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-black hover:border-black hover:bg-white transition-all cursor-default"
                   >
-                    {/* Tiny decorative dot on hover */}
                     <span className="absolute -top-1 -right-1 w-2 h-2 bg-black rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {skill}
                   </div>
@@ -127,7 +125,6 @@ export default function SkillsPage() {
           ))}
         </motion.div>
 
-        {/* "Currently Learning" Section */}
         <motion.div 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}

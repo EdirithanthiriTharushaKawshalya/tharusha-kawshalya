@@ -40,16 +40,19 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto relative">
         <nav 
           className={cn(
-            "glass-panel rounded-full px-6 py-3 flex items-center justify-between transition-all duration-300 border border-gray-200/60 relative z-50",
+            // UPDATED BACKGROUND COLOR HERE:
+            // Unscrolled: bg-gray-200/70 (Darker Grey Glass)
+            // Scrolled: bg-white/95 (Clean White Glass)
+            "glass-panel rounded-full px-6 py-3 flex items-center justify-between transition-all duration-300 border relative z-50",
             scrolled 
-              ? "bg-white/90 shadow-md backdrop-blur-xl border-gray-200" 
-              : "bg-gray-50/80 backdrop-blur-lg"
+              ? "bg-white/95 shadow-md backdrop-blur-xl border-gray-200" 
+              : "bg-gray-200/70 backdrop-blur-lg border-gray-300/50"
           )}
         >
           
           {/* 1. LOGO AREA (Text Only) */}
           <Link href="/" className="group">
-            <span className="font-extrabold text-m tracking-tight text-black group-hover:opacity-70 transition-opacity">
+            <span className="font-extrabold text-lg tracking-tight text-black group-hover:opacity-70 transition-opacity">
               Kawshalya.dev
             </span>
           </Link>
