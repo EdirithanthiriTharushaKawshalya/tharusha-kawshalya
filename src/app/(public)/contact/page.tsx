@@ -29,7 +29,7 @@ export default function ContactPage() {
   };
 
   const handleCopyEmail = () => {
-    navigator.clipboard.writeText("hello@kawshalya.dev"); 
+    navigator.clipboard.writeText("tharusha.k.dev@gmail.com"); 
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -68,7 +68,7 @@ export default function ContactPage() {
                 <div>
                   <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Email Me</p>
                   <div className="flex items-center gap-3">
-                    <span className="text-base font-medium">hello@kawshalya.dev</span>
+                    <span className="text-base font-medium">tharusha.k.dev@gmail.com</span>
                     <button 
                       onClick={handleCopyEmail}
                       className="text-gray-400 hover:text-white transition-colors"
@@ -91,10 +91,10 @@ export default function ContactPage() {
               </div>
 
               <div className="flex gap-4 mt-2">
-                <a href="https://github.com" target="_blank" className="p-3 bg-white/10 rounded-full hover:bg-white hover:text-black transition-all">
+                <a href="https://github.com/EdirithanthiriTharushaKawshalya" target="_blank" className="p-3 bg-white/10 rounded-full hover:bg-white hover:text-black transition-all">
                   <Github size={20} />
                 </a>
-                <a href="https://linkedin.com" target="_blank" className="p-3 bg-white/10 rounded-full hover:bg-white hover:text-black transition-all">
+                <a href="https://www.linkedin.com/in/tharusha-kawshalya-747359356/" target="_blank" className="p-3 bg-white/10 rounded-full hover:bg-white hover:text-black transition-all">
                   <Linkedin size={20} />
                 </a>
               </div>

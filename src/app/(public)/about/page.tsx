@@ -40,25 +40,16 @@ export default function AboutPage() {
               Currently nearing the end of my degree, I am applying my skills in the real world to build robust software solutions.
             </p>
             
-            <div className="flex gap-4">
+            {/* <div className="flex gap-4">
               <button className="w-full md:w-auto bg-black text-white px-8 py-4 rounded-xl font-bold flex justify-center items-center gap-3 hover:bg-gray-800 transition active:scale-95 shadow-xl shadow-black/10">
                 <Download size={20} /> Download CV
               </button>
-            </div>
+            </div> */}
           </motion.div>
 
           {/* --- BLOCK 2: PHOTO PLACEHOLDER --- */}
           <motion.div variants={itemVariants} className="glass-panel p-4 rounded-3xl h-full min-h-[300px] flex items-center justify-center relative overflow-hidden group">
-             <div className="w-full h-full rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">
-                <div className="p-4 bg-white rounded-full shadow-sm mb-3 relative">
-                  <User size={32} className="text-gray-300" />
-                  <span className="absolute top-0 right-0 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-black"></span>
-                  </span>
-                </div>
-                <span className="text-xs font-semibold uppercase tracking-widest text-gray-300">Upload Photo</span>
-             </div>
+             <img src="/profile.jpg" alt="Me" className="w-full h-full object-cover rounded-2xl" />
           </motion.div>
 
           {/* --- BLOCK 3: EXPERIENCE --- */}

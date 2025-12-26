@@ -26,7 +26,9 @@ const skillCategories = [
     skills: [
       "Node.js",
       "Firebase Auth",
+      "Superbase Auth",
       "Firestore",
+      "MongoDB",
       "REST APIs",
       "PostgreSQL",
       "Prisma ORM" 
@@ -42,6 +44,10 @@ const skillCategories = [
       "VS Code",
       "Vercel",
       "Figma",
+      "Adobe Photoshop",
+      "Adobe Lightroom",
+      "Adobe Illustrator",
+      "Adobe Premiere Pro",
       "Postman",
       "npm / yarn"
     ],

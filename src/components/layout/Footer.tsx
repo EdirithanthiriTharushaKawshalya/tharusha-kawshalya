@@ -52,7 +52,7 @@ export default function Footer() {
             <h3 className="font-bold text-black mb-4">Connect</h3>
             <div className="flex gap-3 mb-6">
               <a 
-                href="https://github.com" 
+                href="https://github.com/EdirithanthiriTharushaKawshalya" 
                 target="_blank" 
                 className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-black hover:text-white transition-all"
                 title="GitHub"
@@ -60,7 +60,7 @@ export default function Footer() {
                 <Github size={18} />
               </a>
               <a 
-                href="https://linkedin.com" 
+                href="https://www.linkedin.com/in/tharusha-kawshalya-747359356/" 
                 target="_blank" 
                 className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-black hover:text-white transition-all"
                 title="LinkedIn"
@@ -68,7 +68,7 @@ export default function Footer() {
                 <Linkedin size={18} />
               </a>
               <a 
-                href="mailto:hello@kawshalya.dev" 
+                href="mailto:tharusha.k.dev@gmail.com" 
                 className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-black hover:text-white transition-all"
                 title="Email"
               >
