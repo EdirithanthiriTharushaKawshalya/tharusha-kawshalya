@@ -35,10 +35,10 @@ export default function LoginPage() {
       {/* Background Decor (Subtle Grid) */}
       <div className="absolute inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
 
-      {/* Back Button */}
+      {/* Back Button - UPDATED: tighter spacing on mobile */}
       <Link 
         href="/" 
-        className="absolute top-8 left-8 flex items-center gap-2 text-sm text-gray-500 hover:text-black transition-colors"
+        className="absolute top-4 left-4 md:top-8 md:left-8 flex items-center gap-2 text-sm text-gray-500 hover:text-black transition-colors"
       >
         <ArrowLeft size={16} /> Back to Portfolio
       </Link>
@@ -47,9 +47,10 @@ export default function LoginPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md"
+        className="w-full max-w-md mt-12 md:mt-0" // Added mt-12 to clear the back button on very small screens
       >
-        <div className="glass-panel p-10 rounded-2xl shadow-2xl border border-white/50 backdrop-blur-xl">
+        {/* UPDATED: p-6 on mobile, p-10 on desktop */}
+        <div className="glass-panel p-6 md:p-10 rounded-2xl shadow-2xl border border-white/50 backdrop-blur-xl">
           
           {/* Header Icon */}
           <div className="flex justify-center mb-8">
@@ -72,7 +73,8 @@ export default function LoginPage() {
               <input
                 type="email"
                 placeholder="admin@syntaxerreur.com"
-                className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all placeholder:text-gray-400"
+                // UPDATED: Added 'text-base' to prevent iOS auto-zoom
+                className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all placeholder:text-gray-400 text-base"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -87,7 +89,8 @@ export default function LoginPage() {
               <input
                 type="password"
                 placeholder="••••••••••••"
-                className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all placeholder:text-gray-400"
+                // UPDATED: Added 'text-base'
+                className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all placeholder:text-gray-400 text-base"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
