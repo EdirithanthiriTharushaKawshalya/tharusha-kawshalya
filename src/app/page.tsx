@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { motion } from "framer-motion";
@@ -8,7 +8,10 @@ import { ArrowRight, Terminal, Layers, Code2, Cpu, ExternalLink, Image as ImageI
 
 export default function Home() {
   const [projects, setProjects] = useState<any[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
+  // 1. FETCH PROJECTS
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -23,6 +26,48 @@ export default function Home() {
     fetchProjects();
   }, []);
 
+  // 2. AUTO-SCROLL LOGIC WITH MANUAL OVERRIDE
+  useEffect(() => {
+    if (projects.length === 0) return;
+    
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    let animationFrameId: number;
+    let scrollAccumulator = 0;
+    const scrollSpeed = 0.5; // Adjust this value to control speed (Lower = Slower)
+
+    const animateScroll = () => {
+      if (!isPaused && scrollContainer) {
+        scrollAccumulator += scrollSpeed;
+        
+        // Only scroll when we have accumulated a full pixel to keep it smooth
+        if (scrollAccumulator >= 1) {
+            scrollContainer.scrollLeft += 1;
+            scrollAccumulator -= 1;
+        }
+
+        // INFINITE LOOP LOGIC:
+        // The list is repeated 3 times. 
+        // When we scroll past the first set (1/3 of total width), 
+        // we instantly reset position to 0 (start of first set).
+        // Since Set 1 and Set 2 are identical, the user sees no jump.
+        const oneSetWidth = scrollContainer.scrollWidth / 3;
+        
+        if (scrollContainer.scrollLeft >= oneSetWidth) {
+           // Subtract exactly one set's width to maintain relative position
+           scrollContainer.scrollLeft -= oneSetWidth; 
+        }
+      }
+      animationFrameId = requestAnimationFrame(animateScroll);
+    };
+
+    animationFrameId = requestAnimationFrame(animateScroll);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [projects, isPaused]);
+
+  // Triplicate the projects to ensure smooth infinite scrolling
   const marqueeProjects = [...projects, ...projects, ...projects];
 
   return (
@@ -31,7 +76,7 @@ export default function Home() {
       {/* --- SECTION 1: HERO --- */}
       <section className="relative min-h-[90vh] flex flex-col justify-center items-center overflow-hidden px-4">
         
-        {/* ADDED: Background Grid */}
+        {/* Background Grid */}
         <div className="absolute inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
 
         {/* Blur Spots */}
@@ -121,7 +166,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* --- SECTION 2: FEATURED PROJECTS LOOP --- */}
+      {/* --- SECTION 2: FEATURED PROJECTS LOOP (Auto + Manual Scroll) --- */}
       {projects.length > 0 && (
         <section className="py-20 bg-white border-t border-gray-100 overflow-hidden">
           <div className="text-center mb-12 px-4">
@@ -129,25 +174,27 @@ export default function Home() {
             <p className="text-gray-500 text-sm md:text-base">Selected works from my portfolio.</p>
           </div>
 
-          <div className="relative w-full overflow-hidden">
-            <motion.div 
-              className="flex gap-6 w-max pl-4"
-              animate={{ x: [0, -1200] }} 
-              transition={{
-                x: {
-                  repeat: Infinity,
-                  repeatType: "loop",
-                  duration: 50,
-                  ease: "linear",
-                },
-              }}
-              whileHover={{ animationPlayState: "paused" }} 
+          <div className="relative w-full">
+            {/* UPDATED CONTAINER: 
+              1. overflow-x-auto: Enables native scroll/swipe.
+              2. ref={scrollRef}: Allows us to programmatically scroll it.
+              3. no-scrollbar: Hides the ugly bar but keeps functionality.
+            */}
+            <div 
+              ref={scrollRef}
+              className="flex gap-6 overflow-x-auto w-full pl-4 pb-4 select-none cursor-grab active:cursor-grabbing"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }} // Hide scrollbar in Firefox/IE
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+              onTouchStart={() => setIsPaused(true)}
+              onTouchEnd={() => setIsPaused(false)}
             >
               {marqueeProjects.map((project, index) => (
                 <Link 
                   href={`/projects/${project.id}`} 
                   key={`${project.id}-${index}`}
                   className="w-[320px] md:w-[380px] flex-shrink-0 group"
+                  draggable={false} // Prevent link dragging ghost effect
                 >
                   <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden">
                     <div className="h-48 w-full bg-gray-100 relative flex items-center justify-center overflow-hidden">
@@ -156,6 +203,7 @@ export default function Home() {
                           src={project.image}
                           alt={project.title}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          draggable={false}
                         />
                       ) : (
                         <ImageIcon size={32} className="text-gray-300" />
@@ -189,7 +237,7 @@ export default function Home() {
                   </div>
                 </Link>
               ))}
-            </motion.div>
+            </div>
           </div>
         </section>
       )}
