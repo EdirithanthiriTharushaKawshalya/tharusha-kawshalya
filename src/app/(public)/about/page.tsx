@@ -27,42 +27,31 @@ export default function AboutPage() {
         >
           
           {/* --- BLOCK 1: INTRO (Clean & Professional) --- */}
-          <motion.div variants={itemVariants} className="md:col-span-2 glass-panel p-8 md:p-12 rounded-3xl flex flex-col justify-center">
+          <motion.div variants={itemVariants} className="md:col-span-2 glass-panel p-6 md:p-12 rounded-3xl flex flex-col justify-center">
             <h1 className="text-4xl font-bold mb-6 text-black">
               Software Engineer & <br /> <span className="text-gray-400">Creative Designer.</span>
             </h1>
             <p className="text-gray-600 leading-relaxed mb-8 text-lg">
-              I’m <strong>Edirithanthiri Tharusha Kawshalya</strong>. I bridge the gap between complex backend logic and beautiful frontend design. 
+              I'm <strong>Edirithanthiri Tharusha Kawshalya</strong>. I bridge the gap between complex backend logic and beautiful frontend design. 
               Currently nearing the end of my degree, I am applying my skills in the real world to build robust software solutions.
             </p>
             
             <div className="flex gap-4">
-              <button className="bg-black text-white px-8 py-4 rounded-xl font-bold flex items-center gap-3 hover:bg-gray-800 transition active:scale-95 shadow-xl shadow-black/10">
+              <button className="w-full md:w-auto bg-black text-white px-8 py-4 rounded-xl font-bold flex justify-center items-center gap-3 hover:bg-gray-800 transition active:scale-95 shadow-xl shadow-black/10">
                 <Download size={20} /> Download CV
               </button>
             </div>
           </motion.div>
 
           {/* --- BLOCK 2: PHOTO PLACEHOLDER (New "Digital Frame" Look) --- */}
-          <motion.div variants={itemVariants} className="glass-panel p-4 rounded-3xl h-full min-h-[300px] flex items-center justify-center relative overflow-hidden group">
-             {/* TODO: When you have a photo, remove the <div> below and use:
-                <img src="/your-photo.jpg" alt="Me" className="w-full h-full object-cover rounded-2xl" />
-             */}
-             <div className="w-full h-full rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">
-                <div className="p-4 bg-white rounded-full shadow-sm mb-3 relative">
-                  <User size={32} className="text-gray-300" />
-                  {/* Glowing dot animation */}
-                  <span className="absolute top-0 right-0 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-black"></span>
-                  </span>
-                </div>
-                <span className="text-xs font-semibold uppercase tracking-widest text-gray-300">Upload Photo</span>
-             </div>
+          <motion.div variants={itemVariants} className="glass-panel p-6 md:p-4 rounded-3xl h-full min-h-[300px] flex items-center justify-center relative overflow-hidden group">
+             {/* TODO: When you have a photo, remove the <div> below and use:*/}
+                <img src="/DSC_3440.jpg" alt="Me" className="w-full h-full object-cover rounded-2xl" />
+             
           </motion.div>
 
           {/* --- BLOCK 3: EXPERIENCE (Full Width) --- */}
-          <motion.div variants={itemVariants} className="md:col-span-3 glass-panel p-8 md:p-10 rounded-3xl">
+          <motion.div variants={itemVariants} className="md:col-span-3 glass-panel p-6 md:p-10 rounded-3xl">
             <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
               <div className="p-2 bg-black text-white rounded-lg"><Briefcase size={20} /></div>
               Professional Experience
@@ -98,7 +87,7 @@ export default function AboutPage() {
           </motion.div>
 
           {/* --- BLOCK 4: EDUCATION (Full Width) --- */}
-          <motion.div variants={itemVariants} className="md:col-span-3 glass-panel p-8 md:p-10 rounded-3xl">
+          <motion.div variants={itemVariants} className="md:col-span-3 glass-panel p-6 md:p-10 rounded-3xl">
             <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
               <div className="p-2 bg-gray-100 text-black rounded-lg"><GraduationCap size={20} /></div>
               Education History

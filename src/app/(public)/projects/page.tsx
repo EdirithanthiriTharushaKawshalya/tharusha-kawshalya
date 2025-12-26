@@ -52,8 +52,8 @@ export default function ProjectsPage() {
     : projects.filter(p => p.category === activeFilter || p.tech.some(t => t.includes(activeFilter)));
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen py-12 px-4">
+      <div className="max-w-7xl mx-auto">
         
         {/* HEADER SECTION */}
         <div className="text-center max-w-2xl mx-auto mb-16">
@@ -68,13 +68,13 @@ export default function ProjectsPage() {
           </p>
         </div>
 
-        {/* FILTER BAR */}
-        <div className="flex flex-wrap justify-center gap-2 mb-12">
+        {/* FILTER BAR - Horizontal Scroll on Mobile */}
+        <div className="flex overflow-x-auto pb-4 mb-8 md:mb-12 gap-2 no-scrollbar justify-start md:justify-center px-2">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveFilter(cat)}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+              className={`whitespace-nowrap px-4 md:px-5 py-2 rounded-full text-sm font-medium transition-all flex-shrink-0 ${
                 activeFilter === cat
                   ? "bg-black text-white shadow-lg scale-105"
                   : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
@@ -88,7 +88,7 @@ export default function ProjectsPage() {
         {/* CONTENT AREA */}
         {loading ? (
           // SKELETON LOADING STATE
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-64 bg-gray-100 rounded-3xl animate-pulse"></div>
             ))}
@@ -104,7 +104,7 @@ export default function ProjectsPage() {
           // PROJECTS GRID
           <motion.div 
             layout
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
           >
             <AnimatePresence>
               {filteredProjects.map((project) => (

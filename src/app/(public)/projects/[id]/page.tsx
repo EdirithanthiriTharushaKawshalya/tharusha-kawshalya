@@ -59,12 +59,13 @@ export default function ProjectDetailsPage() {
           <ArrowLeft size={20} /> Back to Projects
         </Link>
 
-        {/* --- NEW: IMAGE BANNER --- */}
+        {/* --- UPDATED: IMAGE BANNER --- */}
         {project.image && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full h-64 md:h-96 rounded-3xl overflow-hidden mb-10 shadow-2xl border border-white/50"
+            // UPDATED: h-48 for mobile, h-96 for desktop
+            className="w-full h-48 md:h-96 rounded-3xl overflow-hidden mb-8 md:mb-10 shadow-2xl border border-white/50"
           >
             <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
           </motion.div>

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Github, Linkedin, Mail, Settings, ArrowUp, Code2, ShieldCheck } from "lucide-react";
+import { Github, Linkedin, Mail, ShieldCheck, ArrowUp } from "lucide-react"; // Removed Code2
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -18,15 +18,12 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           
-          {/* COLUMN 1: BRANDING */}
+          {/* COLUMN 1: BRANDING (Updated - Text Only) */}
           <div className="md:col-span-2 space-y-4">
-            <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight">
-              <div className="p-1.5 bg-black text-white rounded-lg">
-                <Code2 size={20} />
-              </div>
+            <Link href="/" className="font-extrabold text-2xl tracking-tight text-black hover:opacity-80 transition-opacity">
               Kawshalya.dev
             </Link>
-            <p className="text-gray-500 leading-relaxed max-w-sm">
+            <p className="text-gray-500 leading-relaxed max-w-sm text-sm">
               Engineering seamless digital experiences with a focus on performance, accessibility, and modern aesthetics.
             </p>
           </div>

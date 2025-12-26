@@ -35,12 +35,7 @@ export default function ContactPage() {
   };
 
   return (
-    /* UPDATED LAYOUT:
-      min-h-screen -> Forces the section to be at least the height of the viewport.
-      flex flex-col justify-center -> Vertically centers the card.
-      pt-24 -> Adds space for the fixed Navbar.
-    */
-    <div className="min-h-screen w-full flex flex-col justify-center items-center pt-24 pb-12 px-4">
+    <div className="w-full flex flex-col justify-center items-center pt-24 pb-12 px-4">
       
       <div className="max-w-5xl w-full">
         <motion.div 
@@ -136,7 +131,7 @@ export default function ContactPage() {
                   <input
                     required
                     type="text"
-                    className="w-full bg-white p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
+                    className="w-full bg-white p-3 rounded-lg border border-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
                     placeholder="John Doe"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -148,7 +143,7 @@ export default function ContactPage() {
                   <input
                     required
                     type="email"
-                    className="w-full bg-white p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
+                    className="w-full bg-white p-3 rounded-lg border border-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
                     placeholder="john@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -160,7 +155,7 @@ export default function ContactPage() {
                   <textarea
                     required
                     rows={4}
-                    className="w-full bg-white p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all resize-none"
+                    className="w-full bg-white p-3 rounded-lg border border-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all resize-none"
                     placeholder="Tell me about your project..."
                     value={formData.message}
                     onChange={(e) => setFormData({...formData, message: e.target.value})}
