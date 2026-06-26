@@ -55,7 +55,10 @@ export default function Home() {
   const scroll = (direction: "left" | "right") => {
     const container = scrollRef.current;
     if (!container) return;
-    const scrollAmount = direction === "left" ? -380 : 380;
+    const card = container.firstElementChild as HTMLElement;
+    const cardWidth = card ? card.offsetWidth : 380;
+    const gap = 24; // gap-6 is 24px
+    const scrollAmount = direction === "left" ? -(cardWidth + gap) : (cardWidth + gap);
     container.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
@@ -210,11 +213,11 @@ export default function Home() {
                 <Link 
                   href={`/projects/${project.id}`} 
                   key={project.id}
-                  className="w-[320px] md:w-[380px] flex-shrink-0 group"
+                  className="w-[280px] sm:w-[340px] md:w-[calc((100%-24px)/2)] lg:w-[calc((100%-48px)/3)] flex-shrink-0 group"
                   draggable={false} // Prevent link dragging ghost effect
                 >
                   <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden">
-                    <div className="h-48 w-full bg-gray-100 relative flex items-center justify-center overflow-hidden">
+                    <div className="aspect-video w-full bg-gray-100 relative flex items-center justify-center overflow-hidden">
                       {project.image ? (
                         <img
                           src={project.image}
