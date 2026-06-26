@@ -3,23 +3,22 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, Terminal, Layers, Code2, Cpu, ExternalLink, Image as ImageIcon, Zap, ShieldCheck, Smartphone, Database, Package } from "lucide-react";
+import { ArrowRight, Terminal, Layers, Code2, Cpu, ExternalLink, Image as ImageIcon, Zap, ShieldCheck, Smartphone, Database, Package, ChevronLeft, ChevronRight } from "lucide-react";
 
 const TECH_STACK = [
   { name: "Next.js", icon: <Terminal size={16} className="md:w-5 md:h-5 text-black" /> },
-  { name: "Supabase", icon: <Layers size={16} className="md:w-5 md:h-5 text-emerald-500" /> },
-  { name: "Tailwind", icon: <Code2 size={16} className="md:w-5 md:h-5 text-sky-400" /> },
-  { name: "TypeScript", icon: <Cpu size={16} className="md:w-5 md:h-5 text-blue-500" /> },
-  { name: "Docker", icon: <Package size={16} className="md:w-5 md:h-5 text-blue-400" /> },
-  { name: "Prisma", icon: <Database size={16} className="md:w-5 md:h-5 text-slate-700" /> },
-  { name: "Flutter", icon: <Smartphone size={16} className="md:w-5 md:h-5 text-cyan-400" /> },
-  { name: "Firebase", icon: <Layers size={16} className="md:w-5 md:h-5 text-amber-500" /> },
+  { name: "Supabase", icon: <Layers size={16} className="md:w-5 md:h-5 text-black" /> },
+  { name: "Tailwind", icon: <Code2 size={16} className="md:w-5 md:h-5 text-black" /> },
+  { name: "TypeScript", icon: <Cpu size={16} className="md:w-5 md:h-5 text-black" /> },
+  { name: "Docker", icon: <Package size={16} className="md:w-5 md:h-5 text-black" /> },
+  { name: "Prisma", icon: <Database size={16} className="md:w-5 md:h-5 text-black" /> },
+  { name: "Flutter", icon: <Smartphone size={16} className="md:w-5 md:h-5 text-black" /> },
+  { name: "Firebase", icon: <Layers size={16} className="md:w-5 md:h-5 text-black" /> },
 ];
 
 export default function Home() {
   const [projects, setProjects] = useState<any[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [isPaused, setIsPaused] = useState(false);
 
   // 1. FETCH PROJECTS
   useEffect(() => {
@@ -52,49 +51,13 @@ export default function Home() {
     fetchProjects();
   }, []);
 
-  // 2. AUTO-SCROLL LOGIC WITH MANUAL OVERRIDE
-  useEffect(() => {
-    if (projects.length === 0) return;
-    
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer) return;
-
-    let animationFrameId: number;
-    let scrollAccumulator = 0;
-    const scrollSpeed = 0.5; // Adjust this value to control speed (Lower = Slower)
-
-    const animateScroll = () => {
-      if (!isPaused && scrollContainer) {
-        scrollAccumulator += scrollSpeed;
-        
-        // Only scroll when we have accumulated a full pixel to keep it smooth
-        if (scrollAccumulator >= 1) {
-            scrollContainer.scrollLeft += 1;
-            scrollAccumulator -= 1;
-        }
-
-        // INFINITE LOOP LOGIC:
-        // The list is repeated 3 times. 
-        // When we scroll past the first set (1/3 of total width), 
-        // we instantly reset position to 0 (start of first set).
-        // Since Set 1 and Set 2 are identical, the user sees no jump.
-        const oneSetWidth = scrollContainer.scrollWidth / 3;
-        
-        if (scrollContainer.scrollLeft >= oneSetWidth) {
-           // Subtract exactly one set's width to maintain relative position
-           scrollContainer.scrollLeft -= oneSetWidth; 
-        }
-      }
-      animationFrameId = requestAnimationFrame(animateScroll);
-    };
-
-    animationFrameId = requestAnimationFrame(animateScroll);
-
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [projects, isPaused]);
-
-  // Triplicate the projects to ensure smooth infinite scrolling
-  const marqueeProjects = [...projects, ...projects, ...projects];
+  // 2. MANUAL SCROLL HANDLER
+  const scroll = (direction: "left" | "right") => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const scrollAmount = direction === "left" ? -380 : 380;
+    container.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  };
 
   return (
     <div className="flex flex-col">
@@ -219,25 +182,34 @@ export default function Home() {
             <p className="text-gray-500 text-sm md:text-base">Selected works from my portfolio.</p>
           </div>
 
-          <div className="relative w-full">
-            {/* UPDATED CONTAINER: 
-              1. overflow-x-auto: Enables native scroll/swipe.
-              2. ref={scrollRef}: Allows us to programmatically scroll it.
-              3. no-scrollbar: Hides the ugly bar but keeps functionality.
-            */}
+          <div className="relative w-full max-w-7xl mx-auto px-4 md:px-12">
+            {/* Left Button */}
+            <button 
+              onClick={() => scroll("left")}
+              className="absolute left-1 md:left-4 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 p-3 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-md text-black flex items-center justify-center cursor-pointer hover:shadow-lg"
+              title="Scroll Left"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            
+            {/* Right Button */}
+            <button 
+              onClick={() => scroll("right")}
+              className="absolute right-1 md:right-4 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 p-3 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-md text-black flex items-center justify-center cursor-pointer hover:shadow-lg"
+              title="Scroll Right"
+            >
+              <ChevronRight size={20} />
+            </button>
+
             <div 
               ref={scrollRef}
-              className="flex gap-6 overflow-x-auto w-full pl-4 pb-4 select-none cursor-grab active:cursor-grabbing"
+              className="flex gap-6 overflow-x-auto w-full pb-4 scroll-smooth select-none cursor-grab active:cursor-grabbing no-scrollbar"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }} // Hide scrollbar in Firefox/IE
-              onMouseEnter={() => setIsPaused(true)}
-              onMouseLeave={() => setIsPaused(false)}
-              onTouchStart={() => setIsPaused(true)}
-              onTouchEnd={() => setIsPaused(false)}
             >
-              {marqueeProjects.map((project, index) => (
+              {projects.map((project) => (
                 <Link 
                   href={`/projects/${project.id}`} 
-                  key={`${project.id}-${index}`}
+                  key={project.id}
                   className="w-[320px] md:w-[380px] flex-shrink-0 group"
                   draggable={false} // Prevent link dragging ghost effect
                 >
