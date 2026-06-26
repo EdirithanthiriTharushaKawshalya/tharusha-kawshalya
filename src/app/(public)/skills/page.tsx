@@ -27,6 +27,7 @@ const skillCategories = [
       "Node.js",
       "Supabase Auth",
       "Supabase Database",
+      "Firebase (Auth, Firestore, Storage)",
       "MongoDB",
       "REST APIs",
       "PostgreSQL",

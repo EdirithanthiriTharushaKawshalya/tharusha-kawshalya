@@ -14,14 +14,26 @@ export default function Home() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const { data, error } = await supabase
+        let queryRes = await supabase
           .from("projects")
           .select("*")
+          .order("sort_order", { ascending: true })
           .order("created_at", { ascending: false })
           .limit(6);
 
-        if (error) throw error;
-        setProjects(data || []);
+        if (queryRes.error) {
+          if (queryRes.error.code === "42703") {
+            console.warn("sort_order column not found in Supabase. Falling back to ordering by created_at. Please run the SQL migration query!");
+            queryRes = await supabase
+              .from("projects")
+              .select("*")
+              .order("created_at", { ascending: false })
+              .limit(6);
+          }
+          if (queryRes.error) throw queryRes.error;
+        }
+
+        setProjects(queryRes.data || []);
       } catch (error) {
         console.error("Error fetching featured projects:", error);
       }

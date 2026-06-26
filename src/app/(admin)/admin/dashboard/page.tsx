@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { 
   LogOut, Plus, MessageSquare, Trash2, LayoutGrid, 
   Github, Link as LinkIcon, FolderOpen, Image as ImageIcon, Loader2,
-  Pencil
+  Pencil, GripVertical
 } from "lucide-react";
 
 const CATEGORIES = ["Fullstack", "Frontend", "Backend", "Mobile", "UI/UX"];
@@ -21,6 +21,7 @@ export default function AdminDashboard() {
   const [messages, setMessages] = useState<any[]>([]);
 
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -57,12 +58,23 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const { data: pData, error: pError } = await supabase
+      let pQueryRes = await supabase
         .from("projects")
         .select("*")
+        .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false });
-      if (pError) throw pError;
-      setProjects(pData || []);
+
+      if (pQueryRes.error) {
+        if (pQueryRes.error.code === "42703") {
+          console.warn("sort_order column not found in Supabase. Falling back to ordering by created_at. Please run the SQL migration query!");
+          pQueryRes = await supabase
+            .from("projects")
+            .select("*")
+            .order("created_at", { ascending: false });
+        }
+        if (pQueryRes.error) throw pQueryRes.error;
+      }
+      setProjects(pQueryRes.data || []);
 
       const { data: mData, error: mError } = await supabase
         .from("messages")
@@ -101,6 +113,42 @@ export default function AdminDashboard() {
       image: "",
     });
     setImageFile(null);
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    
+    const newProjects = [...projects];
+    const draggedItem = newProjects[draggedIndex];
+    newProjects.splice(draggedIndex, 1);
+    newProjects.splice(index, 0, draggedItem);
+    
+    setDraggedIndex(index);
+    setProjects(newProjects);
+  };
+
+  const handleDragEnd = async () => {
+    setDraggedIndex(null);
+    try {
+      const updates = projects.map(async (p, idx) => {
+        const { error } = await supabase
+          .from("projects")
+          .update({ sort_order: idx })
+          .eq("id", p.id);
+        if (error) throw error;
+      });
+      await Promise.all(updates);
+      console.log("Order saved successfully");
+    } catch (err: any) {
+      console.error("Error saving project order:", err);
+      alert("Error saving project order: " + (err.message || err.hint || "Please make sure the sort_order column was added to your projects table in the Supabase console!"));
+    }
   };
 
   const handleAddProject = async (e: React.FormEvent) => {
@@ -153,7 +201,10 @@ export default function AdminDashboard() {
       } else {
         const { error: insertError } = await supabase
           .from("projects")
-          .insert([projectData]);
+          .insert([{
+            ...projectData,
+            sort_order: projects.length,
+          }]);
 
         if (insertError) throw insertError;
         alert("Project Launched Successfully!");
@@ -308,15 +359,29 @@ export default function AdminDashboard() {
                 <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><FolderOpen size={20} /> Managed Projects</h2>
                 {projects.length === 0 ? <p className="text-gray-400">No projects yet.</p> : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {projects.map((p) => (
-                      <div key={p.id} className="bg-white/60 p-5 rounded-2xl border border-gray-100 flex flex-col justify-between group hover:shadow-md transition-all">
+                    {projects.map((p, index) => (
+                      <div 
+                        key={p.id} 
+                        draggable={true}
+                        onDragStart={(e) => handleDragStart(e, index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragEnd={handleDragEnd}
+                        className={`bg-white/60 p-5 rounded-2xl border border-gray-100 flex flex-col justify-between group hover:shadow-md transition-all ${
+                          draggedIndex === index ? "opacity-40 border-dashed border-gray-400 scale-[0.98]" : ""
+                        }`}
+                      >
                         <div>
                           <div className="flex justify-between items-start mb-2">
-                            {p.image ? (
-                             <img src={p.image} alt="preview" className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
-                            ) : (
-                             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400"><ImageIcon size={18} /></div>
-                            )}
+                            <div className="flex items-center gap-2">
+                              <div className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-black transition-colors p-1" title="Drag to reorder">
+                                <GripVertical size={16} />
+                              </div>
+                              {p.image ? (
+                               <img src={p.image} alt="preview" className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
+                              ) : (
+                               <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400"><ImageIcon size={18} /></div>
+                              )}
+                            </div>
                             <div className="flex gap-2">
                               <button onClick={() => handleStartEdit(p)} className="text-gray-300 hover:text-black transition-colors p-1"><Pencil size={18} /></button>
                               <button onClick={() => handleDelete("projects", p.id)} className="text-gray-300 hover:text-red-500 transition-colors p-1"><Trash2 size={18} /></button>
