@@ -3,7 +3,18 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, Terminal, Layers, Code2, Cpu, ExternalLink, Image as ImageIcon, Zap, ShieldCheck, Smartphone } from "lucide-react";
+import { ArrowRight, Terminal, Layers, Code2, Cpu, ExternalLink, Image as ImageIcon, Zap, ShieldCheck, Smartphone, Database, Package } from "lucide-react";
+
+const TECH_STACK = [
+  { name: "Next.js", icon: <Terminal size={16} className="md:w-5 md:h-5 text-black" /> },
+  { name: "Supabase", icon: <Layers size={16} className="md:w-5 md:h-5 text-emerald-500" /> },
+  { name: "Tailwind", icon: <Code2 size={16} className="md:w-5 md:h-5 text-sky-400" /> },
+  { name: "TypeScript", icon: <Cpu size={16} className="md:w-5 md:h-5 text-blue-500" /> },
+  { name: "Docker", icon: <Package size={16} className="md:w-5 md:h-5 text-blue-400" /> },
+  { name: "Prisma", icon: <Database size={16} className="md:w-5 md:h-5 text-slate-700" /> },
+  { name: "Flutter", icon: <Smartphone size={16} className="md:w-5 md:h-5 text-cyan-400" /> },
+  { name: "Firebase", icon: <Layers size={16} className="md:w-5 md:h-5 text-amber-500" /> },
+];
 
 export default function Home() {
   const [projects, setProjects] = useState<any[]>([]);
@@ -157,24 +168,43 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 1 }}
-            className="mt-12 md:mt-20 pt-8 md:pt-10 border-t border-gray-200/60"
+            className="mt-12 md:mt-20 pt-8 md:pt-10 border-t border-gray-200/60 w-full"
           >
             <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">
               Powering Solutions With
             </p>
-            <div className="flex flex-wrap justify-center gap-6 md:gap-12 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-              <div className="flex items-center gap-2">
-                  <Terminal size={16} className="md:w-5 md:h-5" /> <span className="font-bold text-xs md:text-sm">Next.js</span>
-              </div>
-              <div className="flex items-center gap-2">
-                  <Layers size={16} className="md:w-5 md:h-5" /> <span className="font-bold text-xs md:text-sm">Supabase</span>
-              </div>
-              <div className="flex items-center gap-2">
-                  <Code2 size={16} className="md:w-5 md:h-5" /> <span className="font-bold text-xs md:text-sm">Tailwind</span>
-              </div>
-              <div className="flex items-center gap-2">
-                  <Cpu size={16} className="md:w-5 md:h-5" /> <span className="font-bold text-xs md:text-sm">TypeScript</span>
-              </div>
+            
+            {/* Viewport container: constrained to show 4 items at once */}
+            <div className="w-[500px] md:w-[660px] max-w-full mx-auto overflow-hidden relative opacity-60 hover:opacity-100 transition-opacity duration-300">
+              {/* Fade overlays on edges to make it premium */}
+              <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-[#f5f5f5] to-transparent z-10 pointer-events-none"></div>
+              <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-[#f5f5f5] to-transparent z-10 pointer-events-none"></div>
+              
+              <motion.div 
+                className="flex"
+                animate={{ x: [0, "-50%"] }}
+                transition={{
+                  ease: "linear",
+                  duration: 16,
+                  repeat: Infinity,
+                }}
+                style={{ width: "200%" }}
+              >
+                {/* original 8 items */}
+                {TECH_STACK.map((tech, idx) => (
+                  <div key={idx} className="w-[125px] md:w-[165px] flex-shrink-0 flex items-center justify-center gap-2 select-none">
+                    {tech.icon}
+                    <span className="font-bold text-xs md:text-sm text-gray-700">{tech.name}</span>
+                  </div>
+                ))}
+                {/* duplicates for infinite loop */}
+                {TECH_STACK.map((tech, idx) => (
+                  <div key={`dup-${idx}`} className="w-[125px] md:w-[165px] flex-shrink-0 flex items-center justify-center gap-2 select-none">
+                    {tech.icon}
+                    <span className="font-bold text-xs md:text-sm text-gray-700">{tech.name}</span>
+                  </div>
+                ))}
+              </motion.div>
             </div>
           </motion.div>
 
