@@ -185,11 +185,11 @@ export default function Home() {
             <p className="text-gray-500 text-sm md:text-base">Selected works from my portfolio.</p>
           </div>
 
-          <div className="relative w-full max-w-7xl mx-auto px-4 md:px-12">
+          <div className="relative w-full max-w-7xl mx-auto px-12 md:px-16">
             {/* Left Button */}
             <button 
               onClick={() => scroll("left")}
-              className="absolute left-1 md:left-4 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 p-3 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-md text-black flex items-center justify-center cursor-pointer hover:shadow-lg"
+              className="absolute left-0 md:left-4 top-[90px] lg:top-[103px] -translate-y-1/2 z-10 bg-white border border-gray-200 p-3 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-md text-black flex items-center justify-center cursor-pointer hover:shadow-lg"
               title="Scroll Left"
             >
               <ChevronLeft size={20} />
@@ -198,7 +198,7 @@ export default function Home() {
             {/* Right Button */}
             <button 
               onClick={() => scroll("right")}
-              className="absolute right-1 md:right-4 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 p-3 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-md text-black flex items-center justify-center cursor-pointer hover:shadow-lg"
+              className="absolute right-0 md:right-4 top-[90px] lg:top-[103px] -translate-y-1/2 z-10 bg-white border border-gray-200 p-3 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-md text-black flex items-center justify-center cursor-pointer hover:shadow-lg"
               title="Scroll Right"
             >
               <ChevronRight size={20} />
@@ -213,7 +213,7 @@ export default function Home() {
                 <Link 
                   href={`/projects/${project.id}`} 
                   key={project.id}
-                  className="w-[280px] sm:w-[340px] md:w-[calc((100%-24px)/2)] lg:w-[calc((100%-48px)/3)] flex-shrink-0 group"
+                  className="w-[280px] sm:w-[340px] md:w-[calc((100%-30px)/2)] lg:w-[calc((100%-54px)/3)] flex-shrink-0 group"
                   draggable={false} // Prevent link dragging ghost effect
                 >
                   <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden">
