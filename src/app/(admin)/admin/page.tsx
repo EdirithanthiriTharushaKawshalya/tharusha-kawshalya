@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Mail, ArrowLeft, Loader2, AlertCircle, KeyRound } from "lucide-react";
@@ -20,11 +19,15 @@ export default function LoginPage() {
     setError("");
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
       // Success: animate out or redirect
       router.push("/admin/dashboard");
     } catch (err: any) {
-      setError("Access Denied: Invalid credentials.");
+      setError(err.message || "Access Denied: Invalid credentials.");
       setIsLoading(false);
     }
   };
@@ -127,7 +130,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-8">
-          Secured by Firebase Authentication
+          Secured by Supabase Authentication
         </p>
       </motion.div>
     </div>

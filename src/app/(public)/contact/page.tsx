@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
-import { addDoc, collection } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import { Mail, MapPin, Github, Linkedin, Copy, Check, Loader2, ArrowRight } from "lucide-react";
 
@@ -15,10 +14,16 @@ export default function ContactPage() {
     setStatus("sending");
     
     try {
-      await addDoc(collection(db, "messages"), {
-        ...formData,
-        createdAt: new Date(),
-      });
+      const { error } = await supabase
+        .from("messages")
+        .insert([
+          {
+            name: formData.name,
+            email: formData.email,
+            message: formData.message,
+          }
+        ]);
+      if (error) throw error;
       setStatus("success");
       setFormData({ name: "", email: "", message: "" });
       setTimeout(() => setStatus("idle"), 5000);

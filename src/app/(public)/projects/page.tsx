@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import { Folder, Code2, Search } from "lucide-react";
 import Link from "next/link";
@@ -26,13 +25,13 @@ export default function ProjectsPage() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const q = query(collection(db, "projects")); 
-        const querySnapshot = await getDocs(q);
-        const projectList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Project[];
-        setProjects(projectList);
+        const { data, error } = await supabase
+          .from("projects")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        setProjects(data || []);
       } catch (error) {
         console.error("Error fetching projects:", error);
       } finally {

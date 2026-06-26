@@ -1,10 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth, db, storage } from "@/lib/firebase";
-import { addDoc, collection, getDocs, deleteDoc, doc, query, orderBy } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import { 
   LogOut, Plus, MessageSquare, Trash2, LayoutGrid, 
@@ -35,25 +32,43 @@ export default function AdminDashboard() {
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
+    // Check session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
         router.push("/admin");
       } else {
         fetchData();
         setLoading(false);
       }
     });
-    return () => unsubscribe();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        router.push("/admin");
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [router]);
 
   const fetchData = async () => {
-    const pQuery = query(collection(db, "projects"), orderBy("createdAt", "desc"));
-    const pSnap = await getDocs(pQuery);
-    setProjects(pSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+    try {
+      const { data: pData, error: pError } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (pError) throw pError;
+      setProjects(pData || []);
 
-    const mQuery = query(collection(db, "messages"), orderBy("createdAt", "desc"));
-    const mSnap = await getDocs(mQuery);
-    setMessages(mSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const { data: mData, error: mError } = await supabase
+        .from("messages")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (mError) throw mError;
+      setMessages(mData || []);
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+    }
   };
 
   const handleAddProject = async (e: React.FormEvent) => {
@@ -65,17 +80,41 @@ export default function AdminDashboard() {
       let imageUrl = "";
 
       if (imageFile) {
-        const storageRef = ref(storage, `projects/${Date.now()}-${imageFile.name}`);
-        const snapshot = await uploadBytes(storageRef, imageFile);
-        imageUrl = await getDownloadURL(snapshot.ref);
+        const fileExt = imageFile.name.split(".").pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `public/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("projects")
+          .upload(filePath, imageFile, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("projects")
+          .getPublicUrl(filePath);
+
+        imageUrl = urlData.publicUrl;
       }
 
-      await addDoc(collection(db, "projects"), {
-        ...formData,
-        tech: formData.tech.split(",").map(t => t.trim()),
-        image: imageUrl,
-        createdAt: new Date(),
-      });
+      const { error: insertError } = await supabase
+        .from("projects")
+        .insert([
+          {
+            title: formData.title,
+            description: formData.description,
+            tech: formData.tech.split(",").map(t => t.trim()),
+            category: formData.category,
+            link: formData.link || null,
+            github: formData.github || null,
+            image: imageUrl || null,
+          }
+        ]);
+
+      if (insertError) throw insertError;
 
       alert("Project Launched Successfully!");
       setFormData({ title: "", description: "", tech: "", category: "Fullstack", link: "", github: "" });
@@ -92,7 +131,11 @@ export default function AdminDashboard() {
   const handleDelete = async (collectionName: string, id: string) => {
     if (!confirm("Are you sure you want to delete this?")) return;
     try {
-      await deleteDoc(doc(db, collectionName, id));
+      const { error } = await supabase
+        .from(collectionName)
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
       fetchData();
     } catch (error) {
       console.error("Delete error:", error);
@@ -100,7 +143,7 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
     router.push("/");
   };
 

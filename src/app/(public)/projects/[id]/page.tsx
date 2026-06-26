@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { supabase } from "@/lib/supabase";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Github, Calendar, Layers, Code2 } from "lucide-react";
@@ -17,16 +16,20 @@ export default function ProjectDetailsPage() {
     if (!id) return;
     const fetchProject = async () => {
       try {
-        const docRef = doc(db, "projects", id as string);
-        const docSnap = await getDoc(docRef);
+        const { data, error } = await supabase
+          .from("projects")
+          .select("*")
+          .eq("id", id)
+          .single();
 
-        if (docSnap.exists()) {
-          setProject({ id: docSnap.id, ...docSnap.data() });
+        if (data) {
+          setProject(data);
         } else {
           router.push("/projects"); 
         }
       } catch (error) {
         console.error("Error fetching project:", error);
+        router.push("/projects");
       } finally {
         setLoading(false);
       }
@@ -99,8 +102,8 @@ export default function ProjectDetailsPage() {
             <div className="flex items-center gap-2">
               <Calendar size={18} />
               <span className="text-sm font-medium">
-                {project.createdAt?.seconds 
-                  ? new Date(project.createdAt.seconds * 1000).getFullYear() 
+                {project.created_at 
+                  ? new Date(project.created_at).getFullYear() 
                   : "2025"}
               </span>
             </div>

@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
-import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Terminal, Layers, Code2, Cpu, ExternalLink, Image as ImageIcon, Zap, ShieldCheck, Smartphone } from "lucide-react";
@@ -15,10 +14,14 @@ export default function Home() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const q = query(collection(db, "projects"), orderBy("createdAt", "desc"), limit(6));
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setProjects(data);
+        const { data, error } = await supabase
+          .from("projects")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(6);
+
+        if (error) throw error;
+        setProjects(data || []);
       } catch (error) {
         console.error("Error fetching featured projects:", error);
       }
