@@ -25,9 +25,8 @@ const skillCategories = [
     description: "Architecting scalable server-side logic and managing data flows.",
     skills: [
       "Node.js",
-      "Firebase Auth",
-      "Superbase Auth",
-      "Firestore",
+      "Supabase Auth",
+      "Supabase Database",
       "MongoDB",
       "REST APIs",
       "PostgreSQL",

@@ -259,7 +259,7 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <label className="text-xs font-bold uppercase text-gray-400 mb-1 block">Tech Stack</label>
-                    <input type="text" required placeholder="React, Firebase" className="w-full bg-white/50 p-3 rounded-xl border border-gray-200 outline-none text-base" value={formData.tech} onChange={(e) => setFormData({...formData, tech: e.target.value})} />
+                    <input type="text" required placeholder="React, Supabase" className="w-full bg-white/50 p-3 rounded-xl border border-gray-200 outline-none text-base" value={formData.tech} onChange={(e) => setFormData({...formData, tech: e.target.value})} />
                   </div>
                 </div>
 

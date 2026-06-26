@@ -155,7 +155,7 @@ export default function Home() {
                   <Terminal size={16} className="md:w-5 md:h-5" /> <span className="font-bold text-xs md:text-sm">Next.js</span>
               </div>
               <div className="flex items-center gap-2">
-                  <Layers size={16} className="md:w-5 md:h-5" /> <span className="font-bold text-xs md:text-sm">Firebase</span>
+                  <Layers size={16} className="md:w-5 md:h-5" /> <span className="font-bold text-xs md:text-sm">Supabase</span>
               </div>
               <div className="flex items-center gap-2">
                   <Code2 size={16} className="md:w-5 md:h-5" /> <span className="font-bold text-xs md:text-sm">Tailwind</span>

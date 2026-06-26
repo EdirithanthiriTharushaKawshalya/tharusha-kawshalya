@@ -112,7 +112,7 @@ export default function ProjectsPage() {
                   >
                     
                     {/* IMAGE HEADER */}
-                    <div className="h-48 bg-gray-50 rounded-2xl mb-6 flex items-center justify-center border border-gray-100 group-hover:bg-gray-100 transition-colors relative overflow-hidden">
+                    <div className="aspect-video w-full bg-gray-50 rounded-2xl mb-6 flex items-center justify-center border border-gray-100 group-hover:bg-gray-100 transition-colors relative overflow-hidden">
                       {project.image ? (
                         <img 
                           src={project.image} 

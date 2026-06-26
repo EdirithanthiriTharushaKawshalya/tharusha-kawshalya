@@ -73,7 +73,7 @@ export default function ProjectDetailsPage() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full h-48 md:h-96 rounded-3xl overflow-hidden mb-10 shadow-2xl border border-white/50"
+            className="w-full aspect-video rounded-3xl overflow-hidden mb-10 shadow-2xl border border-white/50"
           >
             <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
           </motion.div>
@@ -128,9 +128,11 @@ export default function ProjectDetailsPage() {
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <Code2 size={20} /> Project Overview
               </h2>
-              <p className="text-gray-600 leading-loose text-lg whitespace-pre-line">
-                {project.description}
-              </p>
+              <div className="text-gray-600 leading-loose text-lg space-y-4">
+                {project.description?.split("\n").filter(Boolean).map((para: string, idx: number) => (
+                  <p key={idx}>{para}</p>
+                ))}
+              </div>
             </div>
           </motion.div>
 
