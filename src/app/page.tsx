@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, Terminal, Layers, Code2, Cpu, ExternalLink, Image as ImageIcon, Zap, ShieldCheck, Smartphone, Database, Package, ChevronLeft, ChevronRight, Search, ChevronDown } from "lucide-react";
+import { ArrowRight, Terminal, Layers, Code2, Cpu, ExternalLink, Image as ImageIcon, Zap, ShieldCheck, Smartphone, Database, Package, ChevronLeft, ChevronRight, Search, ChevronDown, Cloud } from "lucide-react";
 
 const TECH_STACK = [
   { name: "Next.js", icon: <Terminal size={16} className="md:w-5 md:h-5 text-black" /> },
@@ -14,6 +14,7 @@ const TECH_STACK = [
   { name: "Prisma", icon: <Database size={16} className="md:w-5 md:h-5 text-black" /> },
   { name: "Flutter", icon: <Smartphone size={16} className="md:w-5 md:h-5 text-black" /> },
   { name: "Firebase", icon: <Layers size={16} className="md:w-5 md:h-5 text-black" /> },
+  { name: "AWS", icon: <Cloud size={16} className="md:w-5 md:h-5 text-black" /> },
 ];
 
 export default function Home() {
