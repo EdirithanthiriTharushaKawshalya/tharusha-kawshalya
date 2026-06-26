@@ -5,7 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import { 
   LogOut, Plus, MessageSquare, Trash2, LayoutGrid, 
-  Github, Link as LinkIcon, FolderOpen, Image as ImageIcon, Loader2
+  Github, Link as LinkIcon, FolderOpen, Image as ImageIcon, Loader2,
+  Pencil
 } from "lucide-react";
 
 const CATEGORIES = ["Fullstack", "Frontend", "Backend", "Mobile", "UI/UX"];
@@ -19,6 +20,8 @@ export default function AdminDashboard() {
   const [projects, setProjects] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
 
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+
   // Form State
   const [formData, setFormData] = useState({
     title: "",
@@ -27,6 +30,7 @@ export default function AdminDashboard() {
     category: "Fullstack",
     link: "",
     github: "",
+    image: "",
   });
   
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -71,13 +75,41 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleStartEdit = (p: any) => {
+    setEditingProjectId(p.id);
+    setFormData({
+      title: p.title || "",
+      description: p.description || "",
+      tech: Array.isArray(p.tech) ? p.tech.join(", ") : (p.tech || ""),
+      category: p.category || "Fullstack",
+      link: p.link || "",
+      github: p.github || "",
+      image: p.image || "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingProjectId(null);
+    setFormData({
+      title: "",
+      description: "",
+      tech: "",
+      category: "Fullstack",
+      link: "",
+      github: "",
+      image: "",
+    });
+    setImageFile(null);
+  };
+
   const handleAddProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.description) return;
     setIsSubmitting(true);
 
     try {
-      let imageUrl = "";
+      let imageUrl = formData.image || "";
 
       if (imageFile) {
         const fileExt = imageFile.name.split(".").pop();
@@ -100,29 +132,38 @@ export default function AdminDashboard() {
         imageUrl = urlData.publicUrl;
       }
 
-      const { error: insertError } = await supabase
-        .from("projects")
-        .insert([
-          {
-            title: formData.title,
-            description: formData.description,
-            tech: formData.tech.split(",").map(t => t.trim()),
-            category: formData.category,
-            link: formData.link || null,
-            github: formData.github || null,
-            image: imageUrl || null,
-          }
-        ]);
+      const projectData = {
+        title: formData.title,
+        description: formData.description,
+        tech: formData.tech.split(",").map(t => t.trim()).filter(Boolean),
+        category: formData.category,
+        link: formData.link || null,
+        github: formData.github || null,
+        image: imageUrl || null,
+      };
 
-      if (insertError) throw insertError;
+      if (editingProjectId) {
+        const { error: updateError } = await supabase
+          .from("projects")
+          .update(projectData)
+          .eq("id", editingProjectId);
 
-      alert("Project Launched Successfully!");
-      setFormData({ title: "", description: "", tech: "", category: "Fullstack", link: "", github: "" });
-      setImageFile(null);
+        if (updateError) throw updateError;
+        alert("Project Updated Successfully!");
+      } else {
+        const { error: insertError } = await supabase
+          .from("projects")
+          .insert([projectData]);
+
+        if (insertError) throw insertError;
+        alert("Project Launched Successfully!");
+      }
+
+      handleCancelEdit();
       fetchData();
     } catch (error) {
-      console.error("Error adding project: ", error);
-      alert("Error uploading project.");
+      console.error("Error saving project: ", error);
+      alert("Error saving project.");
     } finally {
       setIsSubmitting(false);
     }
@@ -177,12 +218,22 @@ export default function AdminDashboard() {
           {/* EDITOR FORM */}
           <div className="lg:col-span-1 order-1">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6 md:p-8 rounded-3xl sticky top-8">
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><Plus size={20} /> New Project</h2>
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                {editingProjectId ? <Pencil size={20} /> : <Plus size={20} />} 
+                {editingProjectId ? "Edit Project" : "New Project"}
+              </h2>
               <form onSubmit={handleAddProject} className="flex flex-col gap-4">
                 
                 {/* Image Upload Input */}
                 <div>
-                  <label className="text-xs font-bold uppercase text-gray-400 mb-1 block">Cover Image</label>
+                  <label className="text-xs font-bold uppercase text-gray-400 mb-1 block">
+                    Cover Image {editingProjectId && "(optional, keep empty to retain current)"}
+                  </label>
+                  {editingProjectId && formData.image && (
+                    <div className="mb-2 relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+                      <img src={formData.image} alt="current cover" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                   <div className="relative">
                     <input 
                       type="file" 
@@ -228,9 +279,24 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <button type="submit" disabled={isSubmitting} className="bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-all mt-2 flex justify-center items-center gap-2 active:scale-95">
-                  {isSubmitting ? <><Loader2 className="animate-spin" size={18} /> Uploading...</> : "Launch Project"}
-                </button>
+                <div className="flex gap-3">
+                  <button type="submit" disabled={isSubmitting} className="flex-1 bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-all mt-2 flex justify-center items-center gap-2 active:scale-95">
+                    {isSubmitting ? (
+                      <><Loader2 className="animate-spin" size={18} /> Saving...</>
+                    ) : (
+                      editingProjectId ? "Update Project" : "Launch Project"
+                    )}
+                  </button>
+                  {editingProjectId && (
+                    <button 
+                      type="button" 
+                      onClick={handleCancelEdit} 
+                      className="bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-bold hover:bg-gray-300 transition-all mt-2 active:scale-95"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
               </form>
             </motion.div>
           </div>
@@ -251,7 +317,10 @@ export default function AdminDashboard() {
                             ) : (
                              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400"><ImageIcon size={18} /></div>
                             )}
-                            <button onClick={() => handleDelete("projects", p.id)} className="text-gray-300 hover:text-red-500 transition-colors p-1"><Trash2 size={18} /></button>
+                            <div className="flex gap-2">
+                              <button onClick={() => handleStartEdit(p)} className="text-gray-300 hover:text-black transition-colors p-1"><Pencil size={18} /></button>
+                              <button onClick={() => handleDelete("projects", p.id)} className="text-gray-300 hover:text-red-500 transition-colors p-1"><Trash2 size={18} /></button>
+                            </div>
                           </div>
                           <h3 className="font-bold text-lg leading-tight mb-1">{p.title}</h3>
                           <p className="text-sm text-gray-500 line-clamp-2">{p.description}</p>
