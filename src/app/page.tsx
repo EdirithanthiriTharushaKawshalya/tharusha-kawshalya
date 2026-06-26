@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, Terminal, Layers, Code2, Cpu, ExternalLink, Image as ImageIcon, Zap, ShieldCheck, Smartphone, Database, Package, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, Terminal, Layers, Code2, Cpu, ExternalLink, Image as ImageIcon, Zap, ShieldCheck, Smartphone, Database, Package, ChevronLeft, ChevronRight, Search, ChevronDown } from "lucide-react";
 
 const TECH_STACK = [
   { name: "Next.js", icon: <Terminal size={16} className="md:w-5 md:h-5 text-black" /> },
@@ -262,49 +262,147 @@ export default function Home() {
         </section>
       )}
 
-      {/* --- SECTION 3: PHILOSOPHY --- */}
-      <section className="py-24 bg-gray-50/50 border-t border-gray-200 relative">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="mb-16 md:text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-extrabold mb-6 text-black">
-              More Than Just Code.
-            </h2>
-            <p className="text-lg text-gray-500 leading-relaxed">
-              I don't just write functions; I build digital ecosystems. 
-              My development philosophy centers on three core pillars that ensure every project is scalable, fast, and user-friendly.
-            </p>
+      {/* --- SECTION 3: PROCESS & PHILOSOPHY --- */}
+      <section className="py-24 bg-gray-50/30 border-t border-gray-200 relative overflow-hidden">
+        <div className="max-w-5xl mx-auto px-4 pb-20">
+          
+          {/* Header Block styled after the user's reference */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-20">
+            <div className="max-w-2xl">
+              <span className="inline-block bg-gray-100 text-gray-800 text-xs font-bold tracking-wider uppercase px-3 py-1.5 rounded-full mb-4">
+                Development Process
+              </span>
+              <h2 className="text-3xl md:text-5xl font-extrabold text-black mb-6 leading-tight">
+                How I Build Premium Software.
+              </h2>
+              <p className="text-lg text-gray-500 leading-relaxed">
+                I follow a modern engineering workflow to translate ideas into high-performance, 
+                production-ready applications. Every phase is executed with visual excellence and clean architecture.
+              </p>
+            </div>
+            
+            {/* Timeline boxes */}
+            <div className="flex items-center gap-1 bg-gray-100/60 p-1.5 rounded-xl border border-gray-200/50 select-none">
+              <div className="px-4 py-2 text-xs font-bold text-gray-500 bg-white rounded-lg shadow-sm">
+                Concept
+              </div>
+              <div className="px-4 py-2 text-xs font-bold text-white bg-black rounded-lg shadow-sm">
+                Production
+              </div>
+            </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
-              <div className="w-14 h-14 bg-black text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-black/20">
-                <Zap size={28} />
+          {/* Staggered alternating process steps */}
+          <div className="grid md:grid-cols-2 gap-x-12 gap-y-12 relative">
+            
+            {/* STEP 1 (Left Column) */}
+            <div className="relative order-1">
+              <div className="flex bg-white border border-gray-100 rounded-3xl p-6 gap-6 items-stretch shadow-sm hover:shadow-md transition-all duration-300">
+                {/* Vertical Badge */}
+                <div className="w-12 bg-black text-white rounded-2xl flex items-center justify-center py-4 relative select-none shrink-0">
+                  <span className="text-[10px] font-bold uppercase tracking-widest [writing-mode:vertical-lr] rotate-180">
+                    1 Week
+                  </span>
+                </div>
+                {/* Content */}
+                <div className="flex-1 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-black">
+                      <Search size={18} />
+                    </div>
+                    <h3 className="text-xl font-bold text-black">1. Discover & Strategy</h3>
+                  </div>
+                  <p className="text-gray-500 text-sm leading-relaxed">
+                    Analyzing system requirements, designing database schemas, and mapping out user journeys to ensure a solid architectural foundation.
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-3">High Performance</h3>
-              <p className="text-gray-500 leading-relaxed">
-                Optimized loading times and smooth interactions. I use modern frameworks like Next.js to ensure your app is blazing fast.
-              </p>
+              {/* Connector Line 1 -> 2 */}
+              <div className="hidden md:block absolute left-[90%] top-[30%] w-[calc(60%+48px)] h-16 border-t-2 border-r-2 border-dashed border-neutral-400 rounded-tr-2xl -z-10">
+                <ChevronDown className="absolute -bottom-2.5 -right-[10px] text-neutral-400" size={20} />
+              </div>
             </div>
 
-            <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
-              <div className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-600/20">
-                <Smartphone size={28} />
+            {/* STEP 2 (Right Column - Shifted Down) */}
+            <div className="relative order-2 md:translate-y-20">
+              <div className="flex bg-white border border-gray-100 rounded-3xl p-6 gap-6 items-stretch shadow-sm hover:shadow-md transition-all duration-300">
+                {/* Vertical Badge */}
+                <div className="w-12 bg-gray-100 text-gray-800 border border-gray-200/50 rounded-2xl flex items-center justify-center py-4 relative select-none shrink-0">
+                  <span className="text-[10px] font-bold uppercase tracking-widest [writing-mode:vertical-lr] rotate-180">
+                    1-2 Weeks
+                  </span>
+                </div>
+                {/* Content */}
+                <div className="flex-1 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-black">
+                      <Code2 size={18} />
+                    </div>
+                    <h3 className="text-xl font-bold text-black">2. Interface & Frontend</h3>
+                  </div>
+                  <p className="text-gray-500 text-sm leading-relaxed">
+                    Crafting fluid responsive layouts, interactive elements, and modern user experiences using React, Next.js, and custom styling.
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-3">Responsive Design</h3>
-              <p className="text-gray-500 leading-relaxed">
-                A seamless experience across all devices. From 4K monitors to mobile phones, your content looks perfect everywhere.
-              </p>
+              {/* Connector Line 2 -> 3 */}
+              <div className="hidden md:block absolute right-[90%] top-[50%] w-[calc(60%+48px)] h-20 border-t-2 border-l-2 border-dashed border-neutral-400 rounded-tl-2xl -z-10">
+                <ChevronDown className="absolute -bottom-2.5 -left-[10px] text-neutral-400" size={20} />
+              </div>
             </div>
 
-            <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
-              <div className="w-14 h-14 bg-green-500 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-green-500/20">
-                <ShieldCheck size={28} />
+            {/* STEP 3 (Left Column) */}
+            <div className="relative order-3">
+              <div className="flex bg-white border border-gray-100 rounded-3xl p-6 gap-6 items-stretch shadow-sm hover:shadow-md transition-all duration-300">
+                {/* Vertical Badge */}
+                <div className="w-12 bg-black text-white rounded-2xl flex items-center justify-center py-4 relative select-none shrink-0">
+                  <span className="text-[10px] font-bold uppercase tracking-widest [writing-mode:vertical-lr] rotate-180">
+                    1 Week
+                  </span>
+                </div>
+                {/* Content */}
+                <div className="flex-1 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-black">
+                      <Database size={18} />
+                    </div>
+                    <h3 className="text-xl font-bold text-black">3. Robust Engineering</h3>
+                  </div>
+                  <p className="text-gray-500 text-sm leading-relaxed">
+                    Connecting Supabase database tables, configuring secure authentication rules, writing serverless APIs, and structuring data flows.
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-3">Scalable Architecture</h3>
-              <p className="text-gray-500 leading-relaxed">
-                Clean, modular code that grows with your business. I build systems that are easy to maintain and extend in the future.
-              </p>
+              {/* Connector Line 3 -> 4 */}
+              <div className="hidden md:block absolute left-[90%] top-[25%] w-[calc(60%+48px)] h-16 border-t-2 border-r-2 border-dashed border-neutral-400 rounded-tr-2xl -z-10">
+                <ChevronDown className="absolute -bottom-2.5 -right-[10px] text-neutral-400" size={20} />
+              </div>
             </div>
+
+            {/* STEP 4 (Right Column - Shifted Down) */}
+            <div className="relative order-4 md:translate-y-20">
+              <div className="flex bg-white border border-gray-100 rounded-3xl p-6 gap-6 items-stretch shadow-sm hover:shadow-md transition-all duration-300">
+                {/* Vertical Badge */}
+                <div className="w-12 bg-gray-100 text-gray-800 border border-gray-200/50 rounded-2xl flex items-center justify-center py-4 relative select-none shrink-0">
+                  <span className="text-[10px] font-bold uppercase tracking-widest [writing-mode:vertical-lr] rotate-180">
+                    3 Days
+                  </span>
+                </div>
+                {/* Content */}
+                <div className="flex-1 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-black">
+                      <ShieldCheck size={18} />
+                    </div>
+                    <h3 className="text-xl font-bold text-black">4. Deploy & Launch</h3>
+                  </div>
+                  <p className="text-gray-500 text-sm leading-relaxed">
+                    Performing speed audits, caching query operations, testing responsiveness across devices, and deploying with Docker or Vercel.
+                  </p>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
