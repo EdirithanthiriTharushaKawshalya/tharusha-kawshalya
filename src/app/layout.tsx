@@ -5,11 +5,15 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter" 
+});
 
 export const metadata: Metadata = {
   title: "Edirithanthiri Tharusha Kawshalya",
-  description: "Edirithanthiri Tharusha Kawshalya",
+  description: "Edirithanthiri Tharusha Kawshalya - Software Engineer & Creative Portfolio",
 };
 
 export default function RootLayout({
@@ -18,11 +22,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      {/* FIX 1: Add 'flex flex-col min-h-screen' to body.
-        This makes the whole body exactly the height of the screen (minimum).
-      */}
-      <body className={`${inter.className} flex flex-col min-h-screen`}>
+    <html lang="en" className={inter.variable}>
+      <head>
+        <link rel="preconnect" href="https://vzagyiaonezntryzbxkm.supabase.co" crossOrigin="" />
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://vzagyiaonezntryzbxkm.supabase.co" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+      </head>
+      <body className={`${inter.className} flex flex-col min-h-screen antialiased`}>
         <ToastProvider>
           <Navbar />
           

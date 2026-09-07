@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { GraduationCap, Briefcase, Calendar, Camera } from "lucide-react";
 import { getPhotographySettings } from "@/lib/photography";
@@ -72,9 +73,18 @@ export default function AboutPage() {
             </p>
           </motion.div>
 
-          {/* --- BLOCK 2: PHOTO PLACEHOLDER --- */}
+          {/* --- BLOCK 2: PROFILE PHOTO --- */}
           <motion.div variants={itemVariants} className="glass-panel p-4 rounded-3xl h-full min-h-[300px] flex items-center justify-center relative overflow-hidden group">
-             <img src="/profile.jpg" alt="Edirithanthiri Tharusha Kawshalya" className="w-full h-full object-cover rounded-2xl" />
+            <div className="relative w-full h-full min-h-[300px] rounded-2xl overflow-hidden">
+              <Image 
+                src="/profile.webp" 
+                alt="Edirithanthiri Tharusha Kawshalya" 
+                fill 
+                sizes="(max-width: 768px) 100vw, 33vw"
+                priority
+                className="object-cover rounded-2xl transition-transform duration-500 group-hover:scale-105" 
+              />
+            </div>
           </motion.div>
 
           {/* --- BLOCK 3A: SOFTWARE ENGINEERING EXPERIENCE --- */}

@@ -75,7 +75,12 @@ export default function ProjectDetailsPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="w-full aspect-video rounded-3xl overflow-hidden mb-10 shadow-2xl border border-white/50"
           >
-            <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
+            <img 
+              src={project.image} 
+              alt={project.title} 
+              decoding="async"
+              className="w-full h-full object-cover" 
+            />
           </motion.div>
         )}
 

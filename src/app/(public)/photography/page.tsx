@@ -287,6 +287,7 @@ export default function PhotographyPage() {
                     alt={photo.title}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
                     loading="lazy"
+                    decoding="async"
                   />
 
                   {/* Gradient Overlay on Hover */}

@@ -7,7 +7,7 @@ import {
   LogOut, Plus, MessageSquare, Trash2, LayoutGrid, 
   Github, Link as LinkIcon, FolderOpen, Image as ImageIcon, Loader2,
   Pencil, GripVertical, Camera, Eye, EyeOff, Check, ExternalLink,
-  Sparkles
+  Sparkles, Database, Copy, RefreshCw, CloudUpload
 } from "lucide-react";
 import {
   getPhotographySettings,
@@ -19,6 +19,9 @@ import {
   resetDefaultPhotos,
   clearAllPhotos,
   compressImage,
+  checkSupabasePhotographyStatus,
+  syncLocalPhotosToSupabase,
+  SQL_SETUP_SCRIPT,
   PhotographyPhoto,
   PhotographySettings,
   DEFAULT_SETTINGS,
@@ -71,6 +74,15 @@ export default function AdminDashboard() {
     compressedKB: number;
     savings: number;
   } | null>(null);
+
+  // Cloud Database Status State
+  const [cloudStatus, setCloudStatus] = useState<{
+    checking: boolean;
+    connected: boolean;
+    error?: string;
+  }>({ checking: true, connected: false });
+  const [isSyncingToCloud, setIsSyncingToCloud] = useState(false);
+  const [copiedSql, setCopiedSql] = useState(false);
 
   useEffect(() => {
     // Check session
@@ -126,6 +138,9 @@ export default function AdminDashboard() {
       setPhotoSettings(s);
       const p = await getPhotographyPhotos();
       setPhotos(p);
+
+      // 4. Check Supabase Cloud Connection Status
+      checkCloud();
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
     }
@@ -286,6 +301,53 @@ export default function AdminDashboard() {
     });
   };
 
+  // --- PHOTOGRAPHY CLOUD SYNC HANDLERS ---
+  const checkCloud = async () => {
+    setCloudStatus((prev) => ({ ...prev, checking: true }));
+    try {
+      const res = await checkSupabasePhotographyStatus();
+      setCloudStatus({
+        checking: false,
+        connected: res.connected,
+        error: res.error,
+      });
+    } catch (err: any) {
+      setCloudStatus({
+        checking: false,
+        connected: false,
+        error: err?.message || String(err),
+      });
+    }
+  };
+
+  const handleCopySql = () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(SQL_SETUP_SCRIPT);
+    }
+    setCopiedSql(true);
+    showToast("SQL Setup Script copied to clipboard! Paste it into Supabase SQL Editor and click Run.", "success");
+    setTimeout(() => setCopiedSql(false), 3500);
+  };
+
+  const handleSyncLocalToCloud = async () => {
+    setIsSyncingToCloud(true);
+    try {
+      const res = await syncLocalPhotosToSupabase();
+      if (res.success) {
+        showToast(`Cloud Sync Complete! Synced ${res.syncedCount} of ${res.totalLocalCount} photos to Supabase Cloud.`, "success");
+        const updated = await getPhotographyPhotos();
+        setPhotos(updated);
+        checkCloud();
+      } else {
+        showToast(res.error || "Failed to sync photos to Supabase Cloud", "error");
+      }
+    } catch (err: any) {
+      showToast("Error syncing to Supabase: " + (err?.message || "Unknown error"), "error");
+    } finally {
+      setIsSyncingToCloud(false);
+    }
+  };
+
   // --- PHOTOGRAPHY HANDLERS ---
   const handleTogglePhotography = async () => {
     setIsTogglingVisibility(true);
@@ -357,7 +419,19 @@ export default function AdminDashboard() {
         handleCancelPhotoEdit();
         const updated = await getPhotographyPhotos();
         setPhotos(updated);
-        showToast(editingPhotoId ? "Photo updated successfully!" : "Photo added to showcase gallery!", "success");
+        if (res.isCloudSynced) {
+          showToast(
+            editingPhotoId
+              ? "Photo updated and synced to Supabase Cloud!"
+              : "Photo added to showcase and synced to Supabase Cloud!",
+            "success"
+          );
+        } else {
+          showToast(
+            "Photo saved locally. Run the Supabase SQL setup to sync to your live hosted site.",
+            "info"
+          );
+        }
       } else {
         showToast("Error saving photo: " + (res.error || "Unknown error"), "error");
       }
@@ -739,6 +813,135 @@ export default function AdminDashboard() {
               </div>
             </motion.div>
 
+            {/* 1.5 SUPABASE CLOUD DATABASE SYNC STATUS CARD */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`p-5 md:p-6 rounded-2xl border transition-all ${
+                cloudStatus.connected
+                  ? "bg-emerald-50/80 border-emerald-200 text-emerald-950"
+                  : "bg-amber-50/80 border-amber-200 text-amber-950"
+              }`}
+            >
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3.5">
+                  <div
+                    className={`p-3 rounded-xl flex-shrink-0 ${
+                      cloudStatus.connected
+                        ? "bg-emerald-600 text-white"
+                        : "bg-amber-500 text-white"
+                    }`}
+                  >
+                    <Database size={20} />
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-bold text-base md:text-lg">
+                        {cloudStatus.connected
+                          ? "Supabase Cloud Database Connected"
+                          : "Supabase Tables Setup Needed (Live Hosting Sync)"}
+                      </h3>
+                      <span
+                        className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                          cloudStatus.connected
+                            ? "bg-emerald-200 text-emerald-800"
+                            : "bg-amber-200 text-amber-800"
+                        }`}
+                      >
+                        {cloudStatus.checking
+                          ? "Checking..."
+                          : cloudStatus.connected
+                          ? "Cloud Synced"
+                          : "Local Fallback Mode"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1 leading-relaxed max-w-2xl">
+                      {cloudStatus.connected
+                        ? "Photos and settings are permanently stored in Supabase Cloud. Any photo you upload will immediately appear on both localhost and your live hosted site (Vercel)!"
+                        : "Uploaded photos are currently stored in your browser's local cache because the Supabase tables don't exist yet. Run the 1-click SQL script below so your photos sync to your live hosted site."}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {!cloudStatus.connected && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleCopySql}
+                        className="bg-black hover:bg-gray-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                        title="Copy SQL Setup Script to clipboard"
+                      >
+                        {copiedSql ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                        {copiedSql ? "Copied SQL!" : "Copy SQL Script"}
+                      </button>
+
+                      <a
+                        href="https://supabase.com/dashboard/project/vzagyiaonezntryzbxkm/sql/new"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-white hover:bg-gray-50 border border-amber-300 text-amber-900 px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                        title="Open Supabase SQL Editor in new tab"
+                      >
+                        <ExternalLink size={14} />
+                        Open Supabase SQL
+                      </a>
+                    </>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={checkCloud}
+                    disabled={cloudStatus.checking}
+                    className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                    title="Re-test Supabase connection"
+                  >
+                    <RefreshCw size={13} className={cloudStatus.checking ? "animate-spin" : ""} />
+                    {cloudStatus.checking ? "Checking..." : "Verify Connection"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSyncLocalToCloud}
+                    disabled={isSyncingToCloud || !cloudStatus.connected}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer ${
+                      cloudStatus.connected
+                        ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    }`}
+                    title={
+                      cloudStatus.connected
+                        ? "Push all local photos into Supabase database"
+                        : "Connect Supabase tables first to sync"
+                    }
+                  >
+                    {isSyncingToCloud ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      <CloudUpload size={14} />
+                    )}
+                    {isSyncingToCloud ? "Syncing..." : "Sync Local Photos to Cloud"}
+                  </button>
+                </div>
+              </div>
+
+              {!cloudStatus.connected && (
+                <div className="mt-4 pt-3 border-t border-amber-200/80 text-xs text-amber-900/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 font-bold flex items-center justify-center text-[11px]">1</span>
+                    <span>Click <strong>Copy SQL Script</strong></span>
+                    <span>→</span>
+                    <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 font-bold flex items-center justify-center text-[11px]">2</span>
+                    <span>Click <strong>Open Supabase SQL</strong> & paste & click <strong>Run</strong></span>
+                    <span>→</span>
+                    <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 font-bold flex items-center justify-center text-[11px]">3</span>
+                    <span>Click <strong>Verify Connection</strong> & <strong>Sync Local Photos to Cloud</strong>!</span>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+
             {/* 2. MAIN PHOTOGRAPHY GRID: Photo Editor Form (Left) & Gallery Manager (Right) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               
@@ -861,16 +1064,16 @@ export default function AdminDashboard() {
                       />
                     </div>
 
-                    <div className="flex gap-2 pt-2">
+                    <div className="flex items-center gap-2 pt-2">
                       <button 
                         type="submit" 
                         disabled={isPhotoSubmitting || isCompressing}
-                        className="flex-1 bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-all flex justify-center items-center gap-2 active:scale-95 cursor-pointer"
+                        className="flex-1 min-w-0 bg-black text-white py-3 px-4 rounded-xl font-bold text-sm hover:bg-gray-800 transition-all flex justify-center items-center gap-2 active:scale-95 cursor-pointer whitespace-nowrap"
                       >
                         {isPhotoSubmitting ? (
-                          <><Loader2 className="animate-spin" size={18} /> Saving...</>
+                          <><Loader2 className="animate-spin" size={16} /> Saving...</>
                         ) : (
-                          editingPhotoId ? "Save Changes to Photo" : "Add to Gallery"
+                          editingPhotoId ? "Save Changes" : "Add to Gallery"
                         )}
                       </button>
 
@@ -878,7 +1081,7 @@ export default function AdminDashboard() {
                         <button 
                           type="button" 
                           onClick={handleCancelPhotoEdit} 
-                          className="bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-bold hover:bg-gray-300 transition-all active:scale-95 cursor-pointer"
+                          className="bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-bold text-sm hover:bg-gray-300 transition-all active:scale-95 cursor-pointer whitespace-nowrap"
                         >
                           Cancel
                         </button>
