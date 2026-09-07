@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Menu, X, ArrowRight } from "lucide-react";
+import { getPhotographySettings } from "@/lib/photography";
 
-const navItems = [
+const baseNavItems = [
   { name: "Home", path: "/" },
   { name: "About", path: "/about" },
   { name: "Projects", path: "/projects" },
@@ -17,6 +18,43 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showPhotography, setShowPhotography] = useState(true);
+
+  useEffect(() => {
+    // Check initial settings
+    const loadSettings = async () => {
+      const s = await getPhotographySettings();
+      setShowPhotography(s.show_photography);
+    };
+    loadSettings();
+
+    // Listen for live changes from admin dashboard
+    const handleSettingsChange = (e: any) => {
+      if (e?.detail?.show_photography !== undefined) {
+        setShowPhotography(e.detail.show_photography);
+      } else {
+        loadSettings();
+      }
+    };
+
+    window.addEventListener("site-settings-changed", handleSettingsChange);
+    window.addEventListener("storage", loadSettings);
+
+    return () => {
+      window.removeEventListener("site-settings-changed", handleSettingsChange);
+      window.removeEventListener("storage", loadSettings);
+    };
+  }, []);
+
+  const navItems = showPhotography
+    ? [
+        { name: "Home", path: "/" },
+        { name: "About", path: "/about" },
+        { name: "Projects", path: "/projects" },
+        { name: "Skills", path: "/skills" },
+        { name: "Photography", path: "/photography" },
+      ]
+    : baseNavItems;
 
   useEffect(() => {
     const handleScroll = () => {

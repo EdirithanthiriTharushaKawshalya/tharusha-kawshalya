@@ -59,16 +59,28 @@ export default function AboutPage() {
               Professional Experience
             </h2>
             
-            <div className="grid md:grid-cols-2 gap-12">
+            <div className="grid md:grid-cols-3 gap-8">
               <div className="relative pl-6 border-l-2 border-gray-200">
                 <div className="absolute -left-[9px] top-0 w-4 h-4 bg-black rounded-full outline outline-4 outline-white"></div>
-                <h3 className="font-bold text-xl">Intern Software Engineer</h3>
-                <p className="text-black font-medium text-lg mt-1">Syntax Erreur</p>
+                <h3 className="font-bold text-xl">Junior Developer</h3>
+                <p className="text-black font-medium text-lg mt-1">Arcforth</p>
                 <p className="text-sm text-gray-500 mt-2 flex items-center gap-2 font-medium bg-gray-100 w-fit px-2 py-1 rounded">
                   <Calendar size={14} /> Present
                 </p>
                 <p className="text-gray-600 mt-4 leading-relaxed">
-                  Working on full-stack web applications, modernizing legacy systems, and collaborating with senior engineers to deliver scalable solutions.
+                  Building scalable digital solutions, engineering modern full-stack web applications, and delivering high-quality software.
+                </p>
+              </div>
+
+              <div className="relative pl-6 border-l-2 border-gray-200">
+                <div className="absolute -left-[9px] top-0 w-4 h-4 bg-gray-300 rounded-full outline outline-4 outline-white"></div>
+                <h3 className="font-bold text-xl">Intern Software Engineer</h3>
+                <p className="text-black font-medium text-lg mt-1">Syntax Erreur</p>
+                <p className="text-sm text-gray-500 mt-2 flex items-center gap-2 font-medium bg-gray-100 w-fit px-2 py-1 rounded">
+                  <Calendar size={14} /> Completed
+                </p>
+                <p className="text-gray-600 mt-4 leading-relaxed">
+                  Worked on full-stack web applications, modernizing legacy systems, and collaborating with senior engineers to deliver scalable solutions.
                 </p>
               </div>
 

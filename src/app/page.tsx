@@ -89,7 +89,7 @@ export default function Home() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
             </span>
             <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-gray-600">
-              Interning @ Syntax Erreur
+              Junior Developer @ Arcforth
             </span>
           </motion.div>
 
