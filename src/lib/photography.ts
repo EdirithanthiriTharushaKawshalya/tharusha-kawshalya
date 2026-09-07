@@ -25,7 +25,7 @@ export const DEFAULT_SETTINGS: PhotographySettings = {
   tagline: "Exploring visual rhythm, editorial portraiture, and candid street geometry through a cinematic lens.",
 };
 
-// Curated 10 high-resolution initial showcase photos (around 10 as requested)
+// Sample initial showcase photos (freely editable and unlimited)
 export const DEFAULT_PHOTOS: PhotographyPhoto[] = [
   {
     id: "photo-1",
@@ -248,7 +248,7 @@ export async function getPhotographyPhotos(): Promise<PhotographyPhoto[]> {
         if (Array.isArray(parsed)) return parsed;
       }
       
-      // First time loading: initialize with default 10 photos into localStorage
+      // First time loading: initialize with sample photos into localStorage
       localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(DEFAULT_PHOTOS));
       localStorage.setItem(PHOTOS_INITIALIZED_KEY, "true");
       return DEFAULT_PHOTOS;
@@ -391,7 +391,7 @@ async function uploadImageFile(imageFile: File): Promise<string> {
 
 /**
  * Save or Edit a photography photo.
- * Fully supports editing ANY photo (including the initial 10 photos) or adding new ones.
+ * Supports unlimited photos across categories.
  */
 export async function savePhotographyPhoto(
   photoData: Partial<PhotographyPhoto> & { title: string; image: string },
@@ -488,7 +488,7 @@ export async function savePhotographyPhoto(
 }
 
 /**
- * Delete ANY photo from the showcase (works for all 10 photos or newly added ones)
+ * Delete ANY photo from the showcase
  */
 export async function deletePhotographyPhoto(id: string): Promise<boolean> {
   // 1. Try delete in Supabase
@@ -543,7 +543,7 @@ export async function reorderPhotographyPhotos(photos: PhotographyPhoto[]): Prom
 }
 
 /**
- * Reset showcase back to the default 10 curated photos
+ * Reset showcase back to default sample photos
  */
 export async function resetDefaultPhotos(): Promise<PhotographyPhoto[]> {
   if (typeof window !== "undefined") {
@@ -556,4 +556,30 @@ export async function resetDefaultPhotos(): Promise<PhotographyPhoto[]> {
     }
   }
   return DEFAULT_PHOTOS;
+}
+
+/**
+ * Clear all photos from the gallery showcase
+ */
+export async function clearAllPhotos(): Promise<boolean> {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify([]));
+      localStorage.setItem(PHOTOS_INITIALIZED_KEY, "true");
+      window.dispatchEvent(new CustomEvent("photography-photos-changed", { detail: [] }));
+    } catch {
+      // ignore
+    }
+  }
+
+  try {
+    await supabase
+      .from("photography_photos")
+      .delete()
+      .neq("id", "none");
+  } catch (err) {
+    console.warn("Could not clear photos in Supabase:", err);
+  }
+
+  return true;
 }

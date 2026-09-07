@@ -3,8 +3,10 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import { Mail, MapPin, Github, Linkedin, Copy, Check, Loader2, ArrowRight } from "lucide-react";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function ContactPage() {
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [copied, setCopied] = useState(false);
@@ -26,16 +28,19 @@ export default function ContactPage() {
       if (error) throw error;
       setStatus("success");
       setFormData({ name: "", email: "", message: "" });
+      showToast("Message Sent! Thank you for reaching out, I'll get back to you soon.", "success");
       setTimeout(() => setStatus("idle"), 5000);
     } catch (error) {
       console.error(error);
       setStatus("error");
+      showToast("Failed to send message. Please try again or email directly.", "error");
     }
   };
 
   const handleCopyEmail = () => {
     navigator.clipboard.writeText("tharusha.k.dev@gmail.com"); 
     setCopied(true);
+    showToast("Email address copied to clipboard!", "info");
     setTimeout(() => setCopied(false), 2000);
   };
 

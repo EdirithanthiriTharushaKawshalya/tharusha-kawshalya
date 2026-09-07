@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Github, Linkedin, Mail, ShieldCheck, ArrowUp, Camera } from "lucide-react";
+import { Github, Linkedin, Mail, ShieldCheck, ArrowUp, Camera, ArrowUpRight } from "lucide-react";
 import { getPhotographySettings, PhotographySettings, DEFAULT_SETTINGS } from "@/lib/photography";
 
 export default function Footer() {
@@ -131,6 +131,17 @@ export default function Footer() {
                       <Link href="/photography" className="hover:text-black transition-colors font-medium">
                         Showcase Gallery
                       </Link>
+                    </li>
+                    <li>
+                      <a 
+                        href="https://www.primeevokeofficial.com/studio-zine/book" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="hover:text-black transition-colors inline-flex items-center gap-1 font-medium"
+                      >
+                        <span>Book a Shoot</span>
+                        <ArrowUpRight size={13} />
+                      </a>
                     </li>
                     {settings.tiktok_url && (
                       <li>

@@ -17,17 +17,20 @@ import {
   deletePhotographyPhoto,
   reorderPhotographyPhotos,
   resetDefaultPhotos,
+  clearAllPhotos,
   compressImage,
   PhotographyPhoto,
   PhotographySettings,
   DEFAULT_SETTINGS,
 } from "@/lib/photography";
+import { useToast } from "@/components/ui/ToastProvider";
 
 const PROJECT_CATEGORIES = ["Fullstack", "Frontend", "Backend", "Mobile", "UI/UX"];
 const PHOTO_CATEGORIES = ["Portraits", "Street", "Studio", "Events", "Automotive", "Landscape", "Editorial"];
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { showToast, showConfirm } = useToast();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"projects" | "photography" | "messages">("projects");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -184,9 +187,10 @@ export default function AdminDashboard() {
         if (error) throw error;
       });
       await Promise.all(updates);
+      showToast("Project order updated successfully", "success");
     } catch (err: any) {
       console.error("Error saving project order:", err);
-      alert("Error saving project order: " + (err.message || err.hint || "Check sort_order column"));
+      showToast("Error saving project order: " + (err.message || err.hint || "Check sort_order column"), "error");
     }
   };
 
@@ -236,7 +240,7 @@ export default function AdminDashboard() {
           .eq("id", editingProjectId);
 
         if (updateError) throw updateError;
-        alert("Project Updated Successfully!");
+        showToast("Project updated successfully!", "success");
       } else {
         const { error: insertError } = await supabase
           .from("projects")
@@ -246,31 +250,40 @@ export default function AdminDashboard() {
           }]);
 
         if (insertError) throw insertError;
-        alert("Project Launched Successfully!");
+        showToast("Project launched successfully!", "success");
       }
 
       handleCancelProjectEdit();
       fetchData();
     } catch (error) {
       console.error("Error saving project: ", error);
-      alert("Error saving project.");
+      showToast("Error saving project. Please try again.", "error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async (collectionName: string, id: string) => {
-    if (!confirm("Are you sure you want to delete this?")) return;
-    try {
-      const { error } = await supabase
-        .from(collectionName)
-        .delete()
-        .eq("id", id);
-      if (error) throw error;
-      fetchData();
-    } catch (error) {
-      console.error("Delete error:", error);
-    }
+  const handleDelete = (collectionName: string, id: string) => {
+    showConfirm({
+      title: "Delete Item",
+      message: `Are you sure you want to permanently delete this ${collectionName === "projects" ? "project" : "item"}?`,
+      confirmText: "Delete",
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const { error } = await supabase
+            .from(collectionName)
+            .delete()
+            .eq("id", id);
+          if (error) throw error;
+          fetchData();
+          showToast("Item deleted successfully", "info");
+        } catch (error) {
+          console.error("Delete error:", error);
+          showToast("Error deleting item.", "error");
+        }
+      },
+    });
   };
 
   // --- PHOTOGRAPHY HANDLERS ---
@@ -280,8 +293,13 @@ export default function AdminDashboard() {
       const nextState = !photoSettings.show_photography;
       const updated = await updatePhotographySettings({ show_photography: nextState });
       setPhotoSettings(updated);
+      showToast(
+        nextState ? "Photography section is now LIVE on your website" : "Photography section HIDDEN (Interview Mode active)",
+        "info"
+      );
     } catch (err) {
       console.error("Error toggling photography:", err);
+      showToast("Failed to toggle visibility", "error");
     } finally {
       setIsTogglingVisibility(false);
     }
@@ -314,11 +332,11 @@ export default function AdminDashboard() {
   const handleAddOrUpdatePhoto = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!photoForm.title) {
-      alert("Please enter a photo title");
+      showToast("Please enter a photo title", "error");
       return;
     }
     if (!photoForm.image && !photoFile) {
-      alert("Please provide an image file or URL");
+      showToast("Please provide an image file or direct image URL", "error");
       return;
     }
     setIsPhotoSubmitting(true);
@@ -339,13 +357,13 @@ export default function AdminDashboard() {
         handleCancelPhotoEdit();
         const updated = await getPhotographyPhotos();
         setPhotos(updated);
-        alert(editingPhotoId ? "Photo Updated!" : "Photo Added to Showcase!");
+        showToast(editingPhotoId ? "Photo updated successfully!" : "Photo added to showcase gallery!", "success");
       } else {
-        alert("Error saving photo: " + (res.error || "Unknown error"));
+        showToast("Error saving photo: " + (res.error || "Unknown error"), "error");
       }
     } catch (err) {
       console.error("Error saving photo:", err);
-      alert("Error saving photo.");
+      showToast("Error saving photo. Please try again.", "error");
     } finally {
       setIsPhotoSubmitting(false);
     }
@@ -376,21 +394,52 @@ export default function AdminDashboard() {
     setCompressionInfo(null);
   };
 
-  const handleDeletePhotoClick = async (photo: PhotographyPhoto) => {
-    if (!confirm(`Are you sure you want to delete "${photo.title}" from your gallery?`)) return;
-    await deletePhotographyPhoto(photo.id);
-    if (editingPhotoId === photo.id) {
-      handleCancelPhotoEdit();
-    }
-    const updated = await getPhotographyPhotos();
-    setPhotos(updated);
+  const handleDeletePhotoClick = (photo: PhotographyPhoto) => {
+    showConfirm({
+      title: "Delete Photo",
+      message: `Are you sure you want to remove "${photo.title}" from your gallery?`,
+      confirmText: "Delete Photo",
+      isDestructive: true,
+      onConfirm: async () => {
+        await deletePhotographyPhoto(photo.id);
+        if (editingPhotoId === photo.id) {
+          handleCancelPhotoEdit();
+        }
+        const updated = await getPhotographyPhotos();
+        setPhotos(updated);
+        showToast(`Photo "${photo.title}" deleted`, "info");
+      },
+    });
   };
 
-  const handleResetDefaultPhotos = async () => {
-    if (!confirm("Reset showcase gallery back to the initial 10 curated photos?")) return;
-    const res = await resetDefaultPhotos();
-    setPhotos(res);
-    handleCancelPhotoEdit();
+  const handleResetDefaultPhotos = () => {
+    showConfirm({
+      title: "Restore Sample Photos",
+      message: "Reset your showcase gallery back to the default sample photos?",
+      confirmText: "Restore Samples",
+      isDestructive: false,
+      onConfirm: async () => {
+        const res = await resetDefaultPhotos();
+        setPhotos(res);
+        handleCancelPhotoEdit();
+        showToast("Showcase gallery restored to sample photos", "success");
+      },
+    });
+  };
+
+  const handleClearAllPhotos = () => {
+    showConfirm({
+      title: "Clear All Photos",
+      message: "Are you sure you want to clear all photos from your gallery? You can then add your own photos fresh.",
+      confirmText: "Clear All",
+      isDestructive: true,
+      onConfirm: async () => {
+        await clearAllPhotos();
+        setPhotos([]);
+        handleCancelPhotoEdit();
+        showToast("All photos cleared from gallery", "info");
+      },
+    });
   };
 
   const handlePhotoDragStart = (e: React.DragEvent, index: number) => {
@@ -412,6 +461,7 @@ export default function AdminDashboard() {
   const handlePhotoDragEnd = async () => {
     setDraggedPhotoIndex(null);
     await reorderPhotographyPhotos(photos);
+    showToast("Photo order updated", "success");
   };
 
   const handleLogout = async () => {
@@ -843,19 +893,30 @@ export default function AdminDashboard() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                   <div>
                     <h3 className="text-xl font-bold flex items-center gap-2">
-                      <Camera size={20} /> Curated Showcase Gallery ({photos.length} photos)
+                      <Camera size={20} /> Showcase Gallery ({photos.length} {photos.length === 1 ? "photo" : "photos"})
                     </h3>
                     <p className="text-xs md:text-sm text-gray-500">
-                      Drag to reorder your photos. You can edit or delete any photo anytime.
+                      Add as many photos as you want without limits. Drag to reorder, edit, or delete at any time.
                     </p>
                   </div>
-                  <button
-                    onClick={handleResetDefaultPhotos}
-                    className="text-xs font-semibold text-gray-500 hover:text-black bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
-                    title="Reset gallery to 10 default showcase photos"
-                  >
-                    Restore 10 Default Photos
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {photos.length > 0 && (
+                      <button
+                        onClick={handleClearAllPhotos}
+                        className="text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200/60 px-3 py-1.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
+                        title="Remove all photos to start fresh with your own uploads"
+                      >
+                        Clear All Photos
+                      </button>
+                    )}
+                    <button
+                      onClick={handleResetDefaultPhotos}
+                      className="text-xs font-semibold text-gray-500 hover:text-black bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
+                      title="Reset gallery with default sample photos"
+                    >
+                      Restore Samples
+                    </button>
+                  </div>
                 </div>
 
                 {photos.length === 0 ? (

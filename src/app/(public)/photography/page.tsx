@@ -5,7 +5,7 @@ import Link from "next/link";
 import { 
   Camera, ArrowRight, ExternalLink, X, ChevronLeft, ChevronRight, 
   Sparkles, Layers, Aperture, Sliders, Mail, ArrowUpRight,
-  Shield, Code2
+  Shield, Code2, Calendar
 } from "lucide-react";
 import { 
   getPhotographySettings, 
@@ -201,13 +201,16 @@ export default function PhotographyPage() {
               </a>
             )}
 
-            <Link
-              href="/contact"
-              className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-5 py-3 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
+            <a
+              href="https://www.primeevokeofficial.com/studio-zine/book"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-5 py-3 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 active:scale-95 cursor-pointer group"
             >
-              <Mail size={16} />
+              <Calendar size={16} />
               <span>Inquire for Shoot</span>
-            </Link>
+              <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </a>
           </motion.div>
 
           {/* Quick Creative Highlights */}
@@ -223,24 +226,32 @@ export default function PhotographyPage() {
         {/* ==================================================================== */}
         {/* CATEGORY FILTER TABS */}
         {/* ==================================================================== */}
-        <div className="flex overflow-x-auto pb-4 mb-8 md:mb-12 gap-2 no-scrollbar justify-start md:justify-center px-2">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold transition-all flex-shrink-0 cursor-pointer ${
-                activeCategory === cat
-                  ? "bg-black text-white shadow-lg scale-105"
-                  : "bg-white/80 border border-gray-200 text-gray-600 hover:bg-white hover:text-black"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+        <div className="flex overflow-x-auto pb-4 mb-8 md:mb-12 gap-2.5 no-scrollbar justify-start md:justify-center px-2">
+          {categories.map((cat) => {
+            const count = cat === "All" ? photos.length : photos.filter((p) => p.category === cat).length;
+            return (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold transition-all flex-shrink-0 cursor-pointer flex items-center gap-2 ${
+                  activeCategory === cat
+                    ? "bg-black text-white shadow-lg scale-105"
+                    : "bg-white/80 border border-gray-200 text-gray-600 hover:bg-white hover:text-black"
+                }`}
+              >
+                <span>{cat}</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                  activeCategory === cat ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* ==================================================================== */}
-        {/* GALLERY SHOWCASE (10 Curated Photos) */}
+        {/* GALLERY SHOWCASE */}
         {/* ==================================================================== */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -324,12 +335,15 @@ export default function PhotographyPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              <Link
-                href="/contact"
-                className="bg-black text-white px-8 py-4 rounded-xl font-bold text-sm hover:bg-gray-800 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-xl shadow-black/10 cursor-pointer"
+              <a
+                href="https://www.primeevokeofficial.com/studio-zine/book"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-black text-white px-8 py-4 rounded-xl font-bold text-sm hover:bg-gray-800 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-xl shadow-black/10 cursor-pointer group"
               >
-                Let’s Collaborate <ArrowRight size={16} />
-              </Link>
+                <span>Book a Shoot</span>
+                <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              </a>
               {settings.tiktok_url && (
                 <a
                   href={settings.tiktok_url}
