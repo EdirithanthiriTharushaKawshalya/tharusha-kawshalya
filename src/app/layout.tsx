@@ -112,6 +112,9 @@ export const metadata: Metadata = {
     },
   },
   category: "technology",
+  verification: {
+    google: "aHzZM-iBO4Y1xh7ocAkO2p0ERnsE-8ZXgGV_r9O-0h4",
+  },
 };
 
 export default function RootLayout({
@@ -122,6 +125,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <head>
+        <meta name="google-site-verification" content="aHzZM-iBO4Y1xh7ocAkO2p0ERnsE-8ZXgGV_r9O-0h4" />
         <link rel="preconnect" href="https://vzagyiaonezntryzbxkm.supabase.co" crossOrigin="" />
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="" />
         <link rel="dns-prefetch" href="https://vzagyiaonezntryzbxkm.supabase.co" />
