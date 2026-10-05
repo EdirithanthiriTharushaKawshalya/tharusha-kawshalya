@@ -7,7 +7,7 @@ import {
   LogOut, Plus, MessageSquare, Trash2, LayoutGrid, 
   Github, Link as LinkIcon, FolderOpen, Image as ImageIcon, Loader2,
   Pencil, GripVertical, Camera, Eye, EyeOff, Check, ExternalLink,
-  Sparkles, Database, Copy, RefreshCw, CloudUpload
+  Sparkles, Database, Copy, RefreshCw, CloudUpload, User, GraduationCap, Briefcase, Upload, RotateCcw
 } from "lucide-react";
 import {
   getPhotographySettings,
@@ -26,6 +26,16 @@ import {
   PhotographySettings,
   DEFAULT_SETTINGS,
 } from "@/lib/photography";
+import {
+  getAboutData,
+  updateAboutData,
+  resetDefaultAboutData,
+  uploadProfilePhoto,
+  AboutData,
+  DEFAULT_ABOUT_DATA,
+  ExperienceItem,
+  EducationItem,
+} from "@/lib/about";
 import { useToast } from "@/components/ui/ToastProvider";
 
 const PROJECT_CATEGORIES = ["Fullstack", "Frontend", "Backend", "Mobile", "UI/UX"];
@@ -35,8 +45,18 @@ export default function AdminDashboard() {
   const router = useRouter();
   const { showToast, showConfirm } = useToast();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"projects" | "photography" | "messages">("projects");
+  const [activeTab, setActiveTab] = useState<"projects" | "photography" | "about" | "messages">("projects");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // About Page State
+  const [aboutData, setAboutData] = useState<AboutData>(DEFAULT_ABOUT_DATA);
+  const [isSavingAbout, setIsSavingAbout] = useState(false);
+  const [isUploadingProfile, setIsUploadingProfile] = useState(false);
+  const [profileCompressionInfo, setProfileCompressionInfo] = useState<{
+    originalKB: number;
+    compressedKB: number;
+    savings: number;
+  } | null>(null);
 
   // Projects State
   const [projects, setProjects] = useState<any[]>([]);
@@ -139,7 +159,11 @@ export default function AdminDashboard() {
       const p = await getPhotographyPhotos();
       setPhotos(p);
 
-      // 4. Check Supabase Cloud Connection Status
+      // 4. About Page Data
+      const a = await getAboutData();
+      setAboutData(a);
+
+      // 5. Check Supabase Cloud Connection Status
       checkCloud();
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
@@ -538,6 +562,149 @@ export default function AdminDashboard() {
     showToast("Photo order updated", "success");
   };
 
+  // --- ABOUT PAGE HANDLERS ---
+  const handleSaveAbout = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setIsSavingAbout(true);
+    try {
+      await updateAboutData(aboutData);
+      showToast("About page updated successfully!", "success");
+    } catch (err: any) {
+      showToast("Failed to save about data: " + (err.message || String(err)), "error");
+    } finally {
+      setIsSavingAbout(false);
+    }
+  };
+
+  const handleProfileFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingProfile(true);
+    try {
+      const res = await uploadProfilePhoto(file);
+      if (res.url) {
+        setAboutData((prev) => ({ ...prev, profileImage: res.url }));
+        if (res.compression) {
+          setProfileCompressionInfo(res.compression);
+        }
+        showToast("Profile photo uploaded! Click 'Save All Changes' to apply.", "success");
+      } else {
+        showToast(res.error || "Failed to process profile image", "error");
+      }
+    } catch (err: any) {
+      showToast("Error uploading profile photo: " + (err.message || String(err)), "error");
+    } finally {
+      setIsUploadingProfile(false);
+    }
+  };
+
+  const handleResetAbout = () => {
+    showConfirm({
+      title: "Reset About Page",
+      message: "Are you sure you want to restore the default biography, software engineering experiences, and education history?",
+      confirmText: "Reset Defaults",
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const res = await resetDefaultAboutData();
+          setAboutData(res);
+          showToast("About page reset to defaults!", "success");
+        } catch (err) {
+          showToast("Failed to reset about data", "error");
+        }
+      },
+    });
+  };
+
+  const handleAddEngineeringExperience = () => {
+    const newItem: ExperienceItem = {
+      id: `eng-${Date.now()}`,
+      role: "Software Engineer",
+      company: "Company Name",
+      period: "Present",
+      description: "Describe your key projects, full-stack systems, or engineering accomplishments.",
+    };
+    setAboutData((prev) => ({
+      ...prev,
+      engineeringExperiences: [newItem, ...(prev.engineeringExperiences || [])],
+    }));
+  };
+
+  const handleUpdateEngineeringExperience = (id: string, field: keyof ExperienceItem, value: string) => {
+    setAboutData((prev) => ({
+      ...prev,
+      engineeringExperiences: (prev.engineeringExperiences || []).map((item) =>
+        item.id === id ? { ...item, [field]: value } : item
+      ),
+    }));
+  };
+
+  const handleDeleteEngineeringExperience = (id: string) => {
+    setAboutData((prev) => ({
+      ...prev,
+      engineeringExperiences: (prev.engineeringExperiences || []).filter((item) => item.id !== id),
+    }));
+  };
+
+  const handleAddPhotographyExperience = () => {
+    const newItem: ExperienceItem = {
+      id: `photo-exp-${Date.now()}`,
+      role: "Lead Photographer & Visual Director",
+      company: "Studio / Client",
+      period: "Present",
+      description: "Directing cinematic shoots, commercial portraits, and visual media campaigns.",
+    };
+    setAboutData((prev) => ({
+      ...prev,
+      photographyExperiences: [newItem, ...(prev.photographyExperiences || [])],
+    }));
+  };
+
+  const handleUpdatePhotographyExperience = (id: string, field: keyof ExperienceItem, value: string) => {
+    setAboutData((prev) => ({
+      ...prev,
+      photographyExperiences: (prev.photographyExperiences || []).map((item) =>
+        item.id === id ? { ...item, [field]: value } : item
+      ),
+    }));
+  };
+
+  const handleDeletePhotographyExperience = (id: string) => {
+    setAboutData((prev) => ({
+      ...prev,
+      photographyExperiences: (prev.photographyExperiences || []).filter((item) => item.id !== id),
+    }));
+  };
+
+  const handleAddEducation = () => {
+    const newItem: EducationItem = {
+      id: `edu-${Date.now()}`,
+      degree: "Degree / Certification Title",
+      institution: "University / Institute Name",
+      status: "Reading",
+    };
+    setAboutData((prev) => ({
+      ...prev,
+      educationHistory: [newItem, ...(prev.educationHistory || [])],
+    }));
+  };
+
+  const handleUpdateEducation = (id: string, field: keyof EducationItem, value: string) => {
+    setAboutData((prev) => ({
+      ...prev,
+      educationHistory: (prev.educationHistory || []).map((item) =>
+        item.id === id ? { ...item, [field]: value } : item
+      ),
+    }));
+  };
+
+  const handleDeleteEducation = (id: string) => {
+    setAboutData((prev) => ({
+      ...prev,
+      educationHistory: (prev.educationHistory || []).filter((item) => item.id !== id),
+    }));
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push("/");
@@ -580,6 +747,15 @@ export default function AdminDashboard() {
                 ) : (
                   <span className="w-2 h-2 rounded-full bg-gray-400" title="Hidden"></span>
                 )}
+              </button>
+
+              <button 
+                onClick={() => setActiveTab("about")} 
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                  activeTab === 'about' ? 'bg-black text-white shadow-lg' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                <User size={16} /> About Page
               </button>
 
               <button 
@@ -1147,7 +1323,505 @@ export default function AdminDashboard() {
         )}
 
         {/* ==================================================================== */}
-        {/* TAB 3: MESSAGES */}
+        {/* TAB 3: ABOUT PAGE CUSTOMIZATION */}
+        {/* ==================================================================== */}
+        {activeTab === "about" && (
+          <div className="space-y-8">
+            {/* Top Control Bar */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass-panel p-5 md:p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 rounded-xl bg-black text-white">
+                  <User size={20} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base md:text-lg font-bold text-black">About Page Customization</h2>
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+                      Live Editable
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Customize your profile portrait, headline, engineering experience, photography track, and education.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+                <button
+                  type="button"
+                  onClick={handleResetAbout}
+                  className="px-3.5 py-2.5 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-600 hover:text-red-600 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  title="Restore default sample information"
+                >
+                  <RotateCcw size={14} />
+                  <span>Reset Defaults</span>
+                </button>
+
+                <a
+                  href="/about"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-2.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 rounded-xl text-gray-600 hover:text-black transition-colors"
+                  title="Preview About Page"
+                >
+                  <ExternalLink size={15} />
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => handleSaveAbout()}
+                  disabled={isSavingAbout}
+                  className="px-5 py-2.5 bg-black hover:bg-gray-800 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95 cursor-pointer flex-1 sm:flex-none"
+                >
+                  {isSavingAbout ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                  <span>{isSavingAbout ? "Saving..." : "Save All Changes"}</span>
+                </button>
+              </div>
+            </motion.div>
+
+            {/* Grid 1: Profile Portrait & Biography */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Profile Photo Card */}
+              <div className="lg:col-span-1">
+                <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6 rounded-3xl sticky top-8 space-y-4">
+                  <h3 className="text-lg font-bold flex items-center gap-2">
+                    <User size={18} /> Profile Portrait
+                  </h3>
+                  
+                  <div className="relative aspect-[4/5] w-full max-w-[240px] mx-auto rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 shadow-sm">
+                    {aboutData.profileImage ? (
+                      <img
+                        src={aboutData.profileImage}
+                        alt="Profile Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 text-xs">
+                        <User size={36} className="mb-2 opacity-50" />
+                        No photo set
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-3 pt-2">
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">
+                        Upload New Portrait:
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfileFileChange}
+                        className="w-full bg-white/70 p-2 rounded-xl border border-gray-200 text-xs file:mr-2.5 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800 cursor-pointer"
+                      />
+                      {isUploadingProfile && (
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium mt-2">
+                          <Loader2 size={13} className="animate-spin text-black" /> Auto-compressing & uploading...
+                        </div>
+                      )}
+                      {profileCompressionInfo && !isUploadingProfile && (
+                        <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+                          <Check size={12} /> Auto-compressed: {profileCompressionInfo.originalKB} KB ➔ {profileCompressionInfo.compressedKB} KB ({profileCompressionInfo.savings}% smaller WebP)
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+                        Or Image URL:
+                      </label>
+                      <input
+                        type="text"
+                        value={aboutData.profileImage}
+                        onChange={(e) => setAboutData({ ...aboutData, profileImage: e.target.value })}
+                        placeholder="/profile.webp or https://..."
+                        className="w-full bg-white/70 p-2.5 rounded-xl border border-gray-200 text-xs outline-none focus:border-black font-mono text-gray-700"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Biography & Headlines */}
+              <div className="lg:col-span-2">
+                <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6 md:p-8 rounded-3xl space-y-5">
+                  <h3 className="text-lg font-bold flex items-center gap-2">
+                    <Sparkles size={18} /> Headline & Biography
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        value={aboutData.fullName}
+                        onChange={(e) => setAboutData({ ...aboutData, fullName: e.target.value })}
+                        className="w-full bg-white/70 p-2.5 rounded-xl border border-gray-200 text-sm font-semibold outline-none focus:border-black"
+                        placeholder="Edirithanthiri Tharusha Kawshalya"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Headline Prefix</label>
+                      <input
+                        type="text"
+                        value={aboutData.headlinePrefix}
+                        onChange={(e) => setAboutData({ ...aboutData, headlinePrefix: e.target.value })}
+                        className="w-full bg-white/70 p-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-black"
+                        placeholder="Software Engineer &"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+                        Creative Headline (Photography Mode ON)
+                      </label>
+                      <input
+                        type="text"
+                        value={aboutData.headlineCreative}
+                        onChange={(e) => setAboutData({ ...aboutData, headlineCreative: e.target.value })}
+                        className="w-full bg-white/70 p-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-black"
+                        placeholder="Visual Director & Photographer."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+                        Standard Headline (Interview Mode)
+                      </label>
+                      <input
+                        type="text"
+                        value={aboutData.headlineStandard}
+                        onChange={(e) => setAboutData({ ...aboutData, headlineStandard: e.target.value })}
+                        className="w-full bg-white/70 p-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-black"
+                        placeholder="Creative Designer."
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+                      Bio Text (When Photography Mode is ON)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={aboutData.bioPhotography}
+                      onChange={(e) => setAboutData({ ...aboutData, bioPhotography: e.target.value })}
+                      className="w-full bg-white/70 p-3 rounded-xl border border-gray-200 text-sm leading-relaxed outline-none focus:border-black"
+                      placeholder="I'm Edirithanthiri Tharusha Kawshalya. I bridge the gap between complex backend logic, fluid user interfaces, and cinematic visual storytelling."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+                      Bio Text (When Interview Mode / Photography Hidden)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={aboutData.bioStandard}
+                      onChange={(e) => setAboutData({ ...aboutData, bioStandard: e.target.value })}
+                      className="w-full bg-white/70 p-3 rounded-xl border border-gray-200 text-sm leading-relaxed outline-none focus:border-black"
+                      placeholder="I'm Edirithanthiri Tharusha Kawshalya. I bridge the gap between complex backend logic, fluid user interfaces. Applying my engineering skills in the real world to build robust digital solutions."
+                    />
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+
+            {/* Section 2: Software Engineering Experience */}
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6 md:p-8 rounded-3xl space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100 pb-4">
+                <div>
+                  <h3 className="text-xl font-bold flex items-center gap-2">
+                    <Briefcase size={20} /> Software Engineering Experience ({aboutData.engineeringExperiences?.length || 0})
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Chronological career positions, roles, and technical project responsibilities.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddEngineeringExperience}
+                  className="bg-black hover:bg-gray-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                >
+                  <Plus size={14} /> Add Role
+                </button>
+              </div>
+
+              {(!aboutData.engineeringExperiences || aboutData.engineeringExperiences.length === 0) ? (
+                <div className="p-8 text-center text-gray-400 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                  No engineering roles added yet. Click &quot;Add Role&quot; above to create one.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {aboutData.engineeringExperiences.map((exp, idx) => (
+                    <div
+                      key={exp.id || idx}
+                      className="bg-white/80 p-5 rounded-2xl border border-gray-200 shadow-xs relative flex flex-col justify-between gap-3 group hover:border-gray-300 transition-all"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteEngineeringExperience(exp.id)}
+                        className="absolute top-3.5 right-3.5 text-gray-300 hover:text-red-500 p-1 rounded-lg transition-colors cursor-pointer"
+                        title="Delete Role"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+
+                      <div className="space-y-3 pr-6">
+                        <div>
+                          <label className="text-[10px] font-bold uppercase text-gray-400 block mb-0.5">Role / Title</label>
+                          <input
+                            type="text"
+                            value={exp.role}
+                            onChange={(e) => handleUpdateEngineeringExperience(exp.id, "role", e.target.value)}
+                            className="w-full font-bold text-sm bg-transparent border-b border-gray-200 focus:border-black outline-none pb-0.5"
+                            placeholder="Junior Developer"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] font-bold uppercase text-gray-400 block mb-0.5">Company</label>
+                            <input
+                              type="text"
+                              value={exp.company}
+                              onChange={(e) => handleUpdateEngineeringExperience(exp.id, "company", e.target.value)}
+                              className="w-full text-xs font-semibold bg-transparent border-b border-gray-200 focus:border-black outline-none pb-0.5"
+                              placeholder="Arcforth"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold uppercase text-gray-400 block mb-0.5">Period / Status</label>
+                            <input
+                              type="text"
+                              value={exp.period}
+                              onChange={(e) => handleUpdateEngineeringExperience(exp.id, "period", e.target.value)}
+                              className="w-full text-xs font-semibold bg-transparent border-b border-gray-200 focus:border-black outline-none pb-0.5"
+                              placeholder="Present"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold uppercase text-gray-400 block mb-0.5">Description</label>
+                          <textarea
+                            rows={3}
+                            value={exp.description}
+                            onChange={(e) => handleUpdateEngineeringExperience(exp.id, "description", e.target.value)}
+                            className="w-full text-xs text-gray-600 bg-gray-50/70 p-2 rounded-lg border border-gray-200 focus:border-black outline-none leading-relaxed"
+                            placeholder="Describe your engineering impact..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Section 3: Professional Photography & Visual Media Experiences */}
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6 md:p-8 rounded-3xl space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100 pb-4">
+                <div>
+                  <h3 className="text-xl font-bold flex items-center gap-2">
+                    <Camera size={20} /> Professional Photography & Media Experiences ({aboutData.photographyExperiences?.length || 0})
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Studio direction, cinematic videography, and commercial portraiture background (displayed when photography is live).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddPhotographyExperience}
+                  className="bg-black hover:bg-gray-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                >
+                  <Plus size={14} /> Add Media Experience
+                </button>
+              </div>
+
+              {(!aboutData.photographyExperiences || aboutData.photographyExperiences.length === 0) ? (
+                <div className="p-8 text-center text-gray-400 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                  No media roles added yet. Click &quot;Add Media Experience&quot; above to create one.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {aboutData.photographyExperiences.map((exp, idx) => (
+                    <div
+                      key={exp.id || idx}
+                      className="bg-white/80 p-5 rounded-2xl border border-gray-200 shadow-xs relative flex flex-col justify-between gap-3 group hover:border-gray-300 transition-all"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePhotographyExperience(exp.id)}
+                        className="absolute top-3.5 right-3.5 text-gray-300 hover:text-red-500 p-1 rounded-lg transition-colors cursor-pointer"
+                        title="Delete Role"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+
+                      <div className="space-y-3 pr-6">
+                        <div>
+                          <label className="text-[10px] font-bold uppercase text-gray-400 block mb-0.5">Role / Position</label>
+                          <input
+                            type="text"
+                            value={exp.role}
+                            onChange={(e) => handleUpdatePhotographyExperience(exp.id, "role", e.target.value)}
+                            className="w-full font-bold text-sm bg-transparent border-b border-gray-200 focus:border-black outline-none pb-0.5"
+                            placeholder="Lead Photographer & Videographer"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] font-bold uppercase text-gray-400 block mb-0.5">Studio / Client</label>
+                            <input
+                              type="text"
+                              value={exp.company}
+                              onChange={(e) => handleUpdatePhotographyExperience(exp.id, "company", e.target.value)}
+                              className="w-full text-xs font-semibold bg-transparent border-b border-gray-200 focus:border-black outline-none pb-0.5"
+                              placeholder="Studio Zine"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold uppercase text-gray-400 block mb-0.5">Period / Status</label>
+                            <input
+                              type="text"
+                              value={exp.period}
+                              onChange={(e) => handleUpdatePhotographyExperience(exp.id, "period", e.target.value)}
+                              className="w-full text-xs font-semibold bg-transparent border-b border-gray-200 focus:border-black outline-none pb-0.5"
+                              placeholder="Present"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold uppercase text-gray-400 block mb-0.5">Description</label>
+                          <textarea
+                            rows={3}
+                            value={exp.description}
+                            onChange={(e) => handleUpdatePhotographyExperience(exp.id, "description", e.target.value)}
+                            className="w-full text-xs text-gray-600 bg-gray-50/70 p-2 rounded-lg border border-gray-200 focus:border-black outline-none leading-relaxed"
+                            placeholder="Directing visual media productions..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Section 4: Education History */}
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6 md:p-8 rounded-3xl space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100 pb-4">
+                <div>
+                  <h3 className="text-xl font-bold flex items-center gap-2">
+                    <GraduationCap size={20} /> Education History ({aboutData.educationHistory?.length || 0})
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Academic qualifications, university degrees, and educational foundation.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddEducation}
+                  className="bg-black hover:bg-gray-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                >
+                  <Plus size={14} /> Add Education
+                </button>
+              </div>
+
+              {(!aboutData.educationHistory || aboutData.educationHistory.length === 0) ? (
+                <div className="p-8 text-center text-gray-400 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                  No education items added yet. Click &quot;Add Education&quot; above to create one.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                  {aboutData.educationHistory.map((edu, idx) => (
+                    <div
+                      key={edu.id || idx}
+                      className="bg-white/80 p-5 rounded-2xl border border-gray-200 shadow-xs relative flex flex-col justify-between gap-3 group hover:border-gray-300 transition-all"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteEducation(edu.id)}
+                        className="absolute top-3.5 right-3.5 text-gray-300 hover:text-red-500 p-1 rounded-lg transition-colors cursor-pointer"
+                        title="Delete Item"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+
+                      <div className="space-y-3 pr-6">
+                        <div>
+                          <label className="text-[10px] font-bold uppercase text-gray-400 block mb-0.5">Degree / Title</label>
+                          <input
+                            type="text"
+                            value={edu.degree}
+                            onChange={(e) => handleUpdateEducation(edu.id, "degree", e.target.value)}
+                            className="w-full font-bold text-sm bg-transparent border-b border-gray-200 focus:border-black outline-none pb-0.5"
+                            placeholder="BSc Computer Science"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold uppercase text-gray-400 block mb-0.5">Institution / University</label>
+                          <input
+                            type="text"
+                            value={edu.institution}
+                            onChange={(e) => handleUpdateEducation(edu.id, "institution", e.target.value)}
+                            className="w-full text-xs text-gray-700 font-medium bg-transparent border-b border-gray-200 focus:border-black outline-none pb-0.5"
+                            placeholder="University of Westminster"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold uppercase text-gray-400 block mb-0.5">Status / Years</label>
+                          <input
+                            type="text"
+                            value={edu.status}
+                            onChange={(e) => handleUpdateEducation(edu.id, "status", e.target.value)}
+                            className="w-full text-xs font-bold uppercase tracking-wider text-gray-500 bg-transparent border-b border-gray-200 focus:border-black outline-none pb-0.5"
+                            placeholder="Reading"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Bottom Floating/Fixed Save Bar */}
+            <div className="flex justify-end items-center gap-3 pt-4 border-t border-gray-200/80">
+              <button
+                type="button"
+                onClick={handleResetAbout}
+                className="px-4 py-2.5 text-xs font-semibold text-gray-500 hover:text-black transition-colors cursor-pointer"
+              >
+                Reset to Defaults
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSaveAbout()}
+                disabled={isSavingAbout}
+                className="px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 cursor-pointer"
+              >
+                {isSavingAbout ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
+                <span>{isSavingAbout ? "Saving Changes..." : "Save All Changes"}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ==================================================================== */}
+        {/* TAB 4: MESSAGES */}
         {/* ==================================================================== */}
         {activeTab === "messages" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 max-w-4xl mx-auto">
