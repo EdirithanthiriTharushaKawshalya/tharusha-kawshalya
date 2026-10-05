@@ -748,195 +748,144 @@ export default function AdminDashboard() {
         {activeTab === "photography" && (
           <div className="space-y-6">
             
-            {/* 1. CLEAN VISIBILITY SWITCH BANNER (Minimal, Modern, Clutter-Free) */}
+            {/* 1. UNIFIED PHOTOGRAPHY CONTROL BAR (Minimal, Modern, Clutter-Free) */}
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="glass-panel p-5 md:p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+              className="glass-panel p-5 md:p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4"
             >
-              <div className="flex items-center gap-3.5">
-                <div className={`p-3 rounded-xl ${photoSettings.show_photography ? "bg-black text-white" : "bg-gray-200 text-gray-700"}`}>
-                  {photoSettings.show_photography ? <Eye size={20} /> : <EyeOff size={20} />}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-base md:text-lg font-bold text-black">Photography Section</h2>
-                    <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                      photoSettings.show_photography ? "bg-black text-white" : "bg-gray-200 text-gray-600"
-                    }`}>
-                      {photoSettings.show_photography ? "Live on Website" : "Hidden (Interview Mode)"}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {photoSettings.show_photography 
-                      ? "Visible on Navbar, Footer, and live at /photography for business cards." 
-                      : "Hidden from site navigation. Ideal when preparing for technical engineering interviews."}
-                  </p>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <button
-                  onClick={handleTogglePhotography}
-                  disabled={isTogglingVisibility}
-                  className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95 cursor-pointer ${
-                    photoSettings.show_photography
-                      ? "bg-gray-100 hover:bg-gray-200 text-gray-800"
-                      : "bg-black hover:bg-gray-800 text-white"
-                  }`}
-                >
-                  {isTogglingVisibility ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : photoSettings.show_photography ? (
-                    <>
-                      <EyeOff size={14} />
-                      Hide Photography
-                    </>
-                  ) : (
-                    <>
-                      <Eye size={14} />
-                      Show Photography
-                    </>
-                  )}
-                </button>
-
-                <a 
-                  href="/photography" 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="p-2.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 rounded-xl text-gray-600 hover:text-black transition-colors"
-                  title="Preview Photography Page"
-                >
-                  <ExternalLink size={15} />
-                </a>
-              </div>
-            </motion.div>
-
-            {/* 1.5 SUPABASE CLOUD DATABASE SYNC STATUS CARD */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`p-5 md:p-6 rounded-2xl border transition-all ${
-                cloudStatus.connected
-                  ? "bg-emerald-50/80 border-emerald-200 text-emerald-950"
-                  : "bg-amber-50/80 border-amber-200 text-amber-950"
-              }`}
-            >
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-start sm:items-center gap-3.5">
-                  <div
-                    className={`p-3 rounded-xl flex-shrink-0 ${
-                      cloudStatus.connected
-                        ? "bg-emerald-600 text-white"
-                        : "bg-amber-500 text-white"
-                    }`}
-                  >
-                    <Database size={20} />
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className={`p-3 rounded-xl flex-shrink-0 ${photoSettings.show_photography ? "bg-black text-white" : "bg-gray-200 text-gray-700"}`}>
+                    {photoSettings.show_photography ? <Eye size={20} /> : <EyeOff size={20} />}
                   </div>
                   <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-bold text-base md:text-lg">
-                        {cloudStatus.connected
-                          ? "Supabase Cloud Database Connected"
-                          : "Supabase Tables Setup Needed (Live Hosting Sync)"}
-                      </h3>
-                      <span
-                        className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                          cloudStatus.connected
-                            ? "bg-emerald-200 text-emerald-800"
-                            : "bg-amber-200 text-amber-800"
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-base md:text-lg font-bold text-black">Photography Section</h2>
+                      
+                      <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                        photoSettings.show_photography ? "bg-black text-white" : "bg-gray-200 text-gray-600"
+                      }`}>
+                        {photoSettings.show_photography ? "Live on Website" : "Hidden (Interview Mode)"}
+                      </span>
+
+                      {/* Cloud Sync Status Badge */}
+                      <span 
+                        className={`inline-flex items-center gap-1.5 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                          cloudStatus.connected 
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200/70" 
+                            : "bg-amber-50 text-amber-700 border border-amber-200/70"
                         }`}
+                        title={cloudStatus.connected ? "Database connected — changes sync automatically" : "Supabase setup required"}
                       >
-                        {cloudStatus.checking
-                          ? "Checking..."
-                          : cloudStatus.connected
-                          ? "Cloud Synced"
-                          : "Local Fallback Mode"}
+                        <span className={`w-1.5 h-1.5 rounded-full ${cloudStatus.connected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+                        {cloudStatus.checking ? "Checking..." : cloudStatus.connected ? "Cloud Synced" : "Local Only"}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600 mt-1 leading-relaxed max-w-2xl">
-                      {cloudStatus.connected
-                        ? "Photos and settings are permanently stored in Supabase Cloud. Any photo you upload will immediately appear on both localhost and your live hosted site (Vercel)!"
-                        : "Uploaded photos are currently stored in your browser's local cache because the Supabase tables don't exist yet. Run the 1-click SQL script below so your photos sync to your live hosted site."}
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {photoSettings.show_photography 
+                        ? "Visible on Navbar, Footer, and live at /photography for business cards." 
+                        : "Hidden from site navigation. Ideal when preparing for technical engineering interviews."}
                     </p>
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex flex-wrap items-center gap-2">
-                  {!cloudStatus.connected && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleCopySql}
-                        className="bg-black hover:bg-gray-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
-                        title="Copy SQL Setup Script to clipboard"
-                      >
-                        {copiedSql ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                        {copiedSql ? "Copied SQL!" : "Copy SQL Script"}
-                      </button>
-
-                      <a
-                        href="https://supabase.com/dashboard/project/vzagyiaonezntryzbxkm/sql/new"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="bg-white hover:bg-gray-50 border border-amber-300 text-amber-900 px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
-                        title="Open Supabase SQL Editor in new tab"
-                      >
-                        <ExternalLink size={14} />
-                        Open Supabase SQL
-                      </a>
-                    </>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={checkCloud}
-                    disabled={cloudStatus.checking}
-                    className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
-                    title="Re-test Supabase connection"
-                  >
-                    <RefreshCw size={13} className={cloudStatus.checking ? "animate-spin" : ""} />
-                    {cloudStatus.checking ? "Checking..." : "Verify Connection"}
-                  </button>
-
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2 w-full lg:w-auto flex-wrap sm:flex-nowrap">
+                  {/* Cloud Sync Button */}
                   <button
                     type="button"
                     onClick={handleSyncLocalToCloud}
                     disabled={isSyncingToCloud || !cloudStatus.connected}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer ${
+                    className={`px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 border shadow-xs active:scale-95 cursor-pointer ${
                       cloudStatus.connected
-                        ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        ? "bg-white hover:bg-gray-50 border-gray-200 text-gray-700 hover:text-black"
+                        : "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
                     }`}
-                    title={
-                      cloudStatus.connected
-                        ? "Push all local photos into Supabase database"
-                        : "Connect Supabase tables first to sync"
-                    }
+                    title={cloudStatus.connected ? "Sync photos to Supabase Cloud" : "Connect database first to sync"}
                   >
                     {isSyncingToCloud ? (
-                      <Loader2 size={13} className="animate-spin" />
+                      <Loader2 size={13} className="animate-spin text-black" />
                     ) : (
-                      <CloudUpload size={14} />
+                      <CloudUpload size={14} className={cloudStatus.connected ? "text-emerald-600" : "text-gray-400"} />
                     )}
-                    {isSyncingToCloud ? "Syncing..." : "Sync Local Photos to Cloud"}
+                    <span>{isSyncingToCloud ? "Syncing..." : "Sync Photos"}</span>
                   </button>
+
+                  {/* Re-verify Connection */}
+                  <button
+                    type="button"
+                    onClick={checkCloud}
+                    disabled={cloudStatus.checking}
+                    className="p-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl text-gray-600 hover:text-black transition-colors cursor-pointer shadow-xs active:scale-95"
+                    title="Check Supabase Connection"
+                  >
+                    <RefreshCw size={14} className={cloudStatus.checking ? "animate-spin text-emerald-600" : ""} />
+                  </button>
+
+                  {/* Toggle Visibility */}
+                  <button
+                    onClick={handleTogglePhotography}
+                    disabled={isTogglingVisibility}
+                    className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95 cursor-pointer ${
+                      photoSettings.show_photography
+                        ? "bg-gray-100 hover:bg-gray-200 text-gray-800"
+                        : "bg-black hover:bg-gray-800 text-white"
+                    }`}
+                  >
+                    {isTogglingVisibility ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : photoSettings.show_photography ? (
+                      <>
+                        <EyeOff size={14} />
+                        Hide Photography
+                      </>
+                    ) : (
+                      <>
+                        <Eye size={14} />
+                        Show Photography
+                      </>
+                    )}
+                  </button>
+
+                  {/* Preview Page */}
+                  <a 
+                    href="/photography" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="p-2.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 rounded-xl text-gray-600 hover:text-black transition-colors"
+                    title="Preview Photography Page"
+                  >
+                    <ExternalLink size={15} />
+                  </a>
                 </div>
               </div>
 
+              {/* Only shown if database connection is NOT yet set up */}
               {!cloudStatus.connected && (
-                <div className="mt-4 pt-3 border-t border-amber-200/80 text-xs text-amber-900/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="pt-3 border-t border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900 bg-amber-50/60 -mx-5 -mb-5 md:-mx-6 md:-mb-6 p-4 rounded-b-2xl">
+                  <div className="flex items-center gap-2">
+                    <Database size={15} className="text-amber-600 flex-shrink-0" />
+                    <span>Database tables not detected. Run SQL setup to enable live multi-device sync.</span>
+                  </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 font-bold flex items-center justify-center text-[11px]">1</span>
-                    <span>Click <strong>Copy SQL Script</strong></span>
-                    <span>→</span>
-                    <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 font-bold flex items-center justify-center text-[11px]">2</span>
-                    <span>Click <strong>Open Supabase SQL</strong> & paste & click <strong>Run</strong></span>
-                    <span>→</span>
-                    <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 font-bold flex items-center justify-center text-[11px]">3</span>
-                    <span>Click <strong>Verify Connection</strong> & <strong>Sync Local Photos to Cloud</strong>!</span>
+                    <button
+                      type="button"
+                      onClick={handleCopySql}
+                      className="bg-black hover:bg-gray-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer active:scale-95"
+                    >
+                      {copiedSql ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                      {copiedSql ? "Copied" : "Copy SQL Script"}
+                    </button>
+                    <a
+                      href="https://supabase.com/dashboard/project/vzagyiaonezntryzbxkm/sql/new"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="bg-white hover:bg-gray-50 border border-amber-300 text-amber-900 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer active:scale-95"
+                    >
+                      <ExternalLink size={12} />
+                      Open Supabase SQL
+                    </a>
                   </div>
                 </div>
               )}
