@@ -7,8 +7,10 @@ import {
   LogOut, Plus, MessageSquare, Trash2, LayoutGrid, 
   Github, Link as LinkIcon, FolderOpen, Image as ImageIcon, Loader2,
   Pencil, GripVertical, Camera, Eye, EyeOff, Check, ExternalLink,
-  Sparkles, Database, Copy, RefreshCw, CloudUpload, User, GraduationCap, Briefcase, Upload, RotateCcw
+  Sparkles, Database, Copy, RefreshCw, CloudUpload, User, GraduationCap, Briefcase, Upload, RotateCcw,
+  Search, Menu, X, ArrowUpRight, ChevronRight, Layers, ShieldCheck, Inbox, Crop
 } from "lucide-react";
+import ImageCropperModal from "@/components/admin/ImageCropperModal";
 import {
   getPhotographySettings,
   updatePhotographySettings,
@@ -47,6 +49,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"projects" | "photography" | "about" | "messages">("projects");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // About Page State
   const [aboutData, setAboutData] = useState<AboutData>(DEFAULT_ABOUT_DATA);
@@ -57,6 +61,10 @@ export default function AdminDashboard() {
     compressedKB: number;
     savings: number;
   } | null>(null);
+
+  // Profile Image Cropper Modal State
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [cropperImageSrc, setCropperImageSrc] = useState<string>("");
 
   // Projects State
   const [projects, setProjects] = useState<any[]>([]);
@@ -576,23 +584,46 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleProfileFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfileFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Reset input value so user can re-select the same file if needed
+    e.target.value = "";
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setCropperImageSrc(reader.result);
+        setIsCropperOpen(true);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleProfileCropComplete = async (croppedBlob: Blob, _previewUrl: string) => {
     setIsUploadingProfile(true);
     try {
-      const res = await uploadProfilePhoto(file);
+      const croppedFile = new File([croppedBlob], `profile_${Date.now()}.webp`, {
+        type: "image/webp",
+      });
+      const res = await uploadProfilePhoto(croppedFile);
       if (res.url) {
-        setAboutData((prev) => ({ ...prev, profileImage: res.url }));
+        const nextAboutData = { ...aboutData, profileImage: res.url };
+        setAboutData(nextAboutData);
         if (res.compression) {
           setProfileCompressionInfo(res.compression);
         }
-        showToast("Profile photo uploaded! Click 'Save All Changes' to apply.", "success");
+
+        // Persist immediately to Supabase and LocalStorage so it saves without requiring extra button click
+        await updateAboutData(nextAboutData);
+        showToast("Profile portrait cropped and saved successfully!", "success");
       } else {
-        showToast(res.error || "Failed to process profile image", "error");
+        showToast(res.error || "Failed to process cropped profile image", "error");
       }
     } catch (err: any) {
-      showToast("Error uploading profile photo: " + (err.message || String(err)), "error");
+      console.error("Profile crop upload error:", err);
+      showToast("Error saving cropped photo: " + (err.message || String(err)), "error");
     } finally {
       setIsUploadingProfile(false);
     }
@@ -710,81 +741,344 @@ export default function AdminDashboard() {
     router.push("/");
   };
 
+  // Filtered Lists for Workspace Search
+  const filteredProjects = projects.filter((p) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const matchTitle = p.title?.toLowerCase().includes(q);
+    const matchDesc = p.description?.toLowerCase().includes(q);
+    const matchCategory = p.category?.toLowerCase().includes(q);
+    const techStr = Array.isArray(p.tech) ? p.tech.join(" ") : (p.tech || "");
+    const matchTech = techStr.toLowerCase().includes(q);
+    return matchTitle || matchDesc || matchCategory || matchTech;
+  });
+
+  const filteredPhotos = photos.filter((photo) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      photo.title?.toLowerCase().includes(q) ||
+      photo.category?.toLowerCase().includes(q) ||
+      photo.description?.toLowerCase().includes(q)
+    );
+  });
+
+  const filteredMessages = messages.filter((msg) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      msg.name?.toLowerCase().includes(q) ||
+      msg.email?.toLowerCase().includes(q) ||
+      msg.message?.toLowerCase().includes(q)
+    );
+  });
+
+  const tabTitles: Record<string, { title: string; subtitle: string }> = {
+    projects: {
+      title: "Projects",
+      subtitle: "Engineering case studies, technical architecture, and live demo links.",
+    },
+    photography: {
+      title: "Photography Showcase",
+      subtitle: "Curate visual stories, manage public gallery visibility, and sync cloud media.",
+    },
+    about: {
+      title: "About Page",
+      subtitle: "Customize your profile portrait, dual bio, career timeline, and academic credentials.",
+    },
+    messages: {
+      title: "Inbox",
+      subtitle: "Client inquiries, partnership requests, and portfolio messages.",
+    },
+  };
+
+  const renderSidebarContent = () => (
+    <div className="flex flex-col h-full justify-between overflow-y-auto pr-0.5">
+      <div className="space-y-6">
+        {/* Workspace Brand Header */}
+        <div className="flex items-center justify-between px-2.5 py-2 rounded-2xl hover:bg-gray-50 transition-colors">
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-gray-900 tracking-tight truncate">Tharusha Kawshalya</h2>
+            <p className="text-[11px] text-gray-400 font-medium truncate">Product Studio • Admin</p>
+          </div>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" title="System Online" />
+        </div>
+
+        {/* Search Bar (Linear/Notion style) */}
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search console..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-8 pr-12 py-2 bg-gray-100/80 hover:bg-gray-100 focus:bg-white text-xs rounded-xl border border-transparent focus:border-gray-300 outline-none transition-all placeholder:text-gray-400 font-medium"
+          />
+          {searchQuery ? (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 hover:text-black cursor-pointer"
+            >
+              <X size={12} />
+            </button>
+          ) : (
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-mono text-gray-400 bg-white/80 border border-gray-200 px-1 py-0.5 rounded">
+              ⌘K
+            </span>
+          )}
+        </div>
+
+        {/* Section 1: Essentials Navigation */}
+        <div className="space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-2.5 mb-1.5">
+            Essentials
+          </p>
+
+          <button
+            onClick={() => { setActiveTab("projects"); setMobileSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === "projects"
+                ? "bg-gray-100 text-black shadow-xs font-bold"
+                : "text-gray-600 hover:text-black hover:bg-gray-50"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <FolderOpen size={16} className={activeTab === "projects" ? "text-black" : "text-gray-400"} />
+              <span>Projects</span>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-200/80 text-gray-700">
+              {projects.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab("photography"); setMobileSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === "photography"
+                ? "bg-gray-100 text-black shadow-xs font-bold"
+                : "text-gray-600 hover:text-black hover:bg-gray-50"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Camera size={16} className={activeTab === "photography" ? "text-black" : "text-gray-400"} />
+              <span>Photography</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {photoSettings.show_photography ? (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" title="Live on site" />
+              ) : (
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400" title="Hidden" />
+              )}
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-200/80 text-gray-700">
+                {photos.length}
+              </span>
+            </div>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab("about"); setMobileSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === "about"
+                ? "bg-gray-100 text-black shadow-xs font-bold"
+                : "text-gray-600 hover:text-black hover:bg-gray-50"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <User size={16} className={activeTab === "about" ? "text-black" : "text-gray-400"} />
+              <span>About Page</span>
+            </div>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded text-emerald-700 bg-emerald-50 border border-emerald-200/70">
+              Live
+            </span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab("messages"); setMobileSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === "messages"
+                ? "bg-gray-100 text-black shadow-xs font-bold"
+                : "text-gray-600 hover:text-black hover:bg-gray-50"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Inbox size={16} className={activeTab === "messages" ? "text-black" : "text-gray-400"} />
+              <span>Messages</span>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-black text-white">
+              {messages.length}
+            </span>
+          </button>
+        </div>
+
+        {/* Section 2: Live Portfolio Links */}
+        <div className="space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-2.5 mb-1.5">
+            Live Portfolio
+          </p>
+
+          <a
+            href="/"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-between px-3 py-2 rounded-xl text-xs text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
+          >
+            <span>Portfolio Home</span>
+            <ArrowUpRight size={13} className="text-gray-400" />
+          </a>
+
+          <a
+            href="/photography"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-between px-3 py-2 rounded-xl text-xs text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
+          >
+            <span>Photography Page</span>
+            <ArrowUpRight size={13} className="text-gray-400" />
+          </a>
+
+          <a
+            href="/about"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-between px-3 py-2 rounded-xl text-xs text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
+          >
+            <span>About Page</span>
+            <ArrowUpRight size={13} className="text-gray-400" />
+          </a>
+        </div>
+
+        {/* Section 3: Supabase Cloud Status Card */}
+        <div className="p-3 bg-gray-50/80 rounded-2xl border border-gray-200/80 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Database size={13} className={cloudStatus.connected ? "text-emerald-600" : "text-amber-500"} />
+              <span className="text-xs font-semibold text-gray-800">Supabase Cloud</span>
+            </div>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+              cloudStatus.connected ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+            }`}>
+              {cloudStatus.connected ? "Synced" : "Local"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-200/60">
+            <span>Database</span>
+            <button
+              onClick={checkCloud}
+              disabled={cloudStatus.checking}
+              className="text-black hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+            >
+              <RefreshCw size={10} className={cloudStatus.checking ? "animate-spin" : ""} />
+              {cloudStatus.checking ? "Checking" : "Verify"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Sidebar Footer: User Card & Logout */}
+      <div className="pt-4 border-t border-gray-200/80 flex items-center justify-between">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center text-gray-600 shrink-0">
+            <ShieldCheck size={15} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-gray-800 truncate">Admin Console</p>
+            <p className="text-[10px] text-gray-400">Authorized Session</p>
+          </div>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+          title="Sign Out"
+        >
+          <LogOut size={16} />
+        </button>
+      </div>
+    </div>
+  );
+
   if (loading) return <div className="h-screen flex items-center justify-center font-bold">Loading Dashboard...</div>;
 
   return (
-    <div className="min-h-screen relative p-4 md:p-12">
-      <div className="absolute inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+    <div className="min-h-screen bg-[#f8f9fb] flex flex-col lg:flex-row font-sans text-gray-900">
+      
+      {/* 1. DESKTOP PERMANENT SIDEBAR */}
+      <aside className="hidden lg:flex w-64 xl:w-72 bg-white border-r border-gray-200/80 flex-col h-screen sticky top-0 z-40 p-4 shadow-[1px_0_5px_rgba(0,0,0,0.02)] select-none overflow-y-auto">
+        {renderSidebarContent()}
+      </aside>
 
-      <div className="max-w-7xl mx-auto">
-        
-        {/* HEADER: Flex-col on mobile for stacking */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-12 glass-panel p-6 rounded-2xl gap-4 shadow-sm">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2"><LayoutGrid size={24} /> Admin Dashboard</h1>
-            <p className="text-gray-500 text-sm">Manage your engineering projects, photography gallery, and portfolio settings.</p>
-          </div>
-          <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-3 flex-wrap">
-            <div className="flex gap-2 flex-wrap">
-              <button 
-                onClick={() => setActiveTab("projects")} 
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                  activeTab === 'projects' ? 'bg-black text-white shadow-lg' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
+      {/* 2. MOBILE DRAWER SIDEBAR */}
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex">
+          <div 
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+          <div className="relative w-72 max-w-[85vw] bg-white h-full shadow-2xl z-10 p-4 flex flex-col overflow-y-auto">
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={() => setMobileSidebarOpen(false)}
+                className="p-2 text-gray-400 hover:text-black rounded-lg cursor-pointer"
               >
-                <FolderOpen size={16} /> Projects ({projects.length})
-              </button>
-              
-              <button 
-                onClick={() => setActiveTab("photography")} 
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                  activeTab === 'photography' ? 'bg-black text-white shadow-lg' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
-              >
-                <Camera size={16} /> Photography ({photos.length})
-                {photoSettings.show_photography ? (
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" title="Active on Website"></span>
-                ) : (
-                  <span className="w-2 h-2 rounded-full bg-gray-400" title="Hidden"></span>
-                )}
-              </button>
-
-              <button 
-                onClick={() => setActiveTab("about")} 
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                  activeTab === 'about' ? 'bg-black text-white shadow-lg' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
-              >
-                <User size={16} /> About Page
-              </button>
-
-              <button 
-                onClick={() => setActiveTab("messages")} 
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                  activeTab === 'messages' ? 'bg-black text-white shadow-lg' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
-              >
-                <MessageSquare size={16} /> Messages ({messages.length})
+                <X size={18} />
               </button>
             </div>
-            
-            <button 
-              onClick={handleLogout} 
-              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-              title="Log Out"
+            {renderSidebarContent()}
+          </div>
+        </div>
+      )}
+
+      {/* 3. MAIN WORKSPACE / CONTENT AREA */}
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
+        
+        {/* Top Navbar */}
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100 cursor-pointer"
             >
-              <LogOut size={20} />
+              <Menu size={18} />
             </button>
+            <div className="flex items-center gap-2 text-xs text-gray-500 font-medium truncate">
+              <span className="hidden sm:inline">Workspace</span>
+              <ChevronRight size={12} className="hidden sm:inline text-gray-400 shrink-0" />
+              <span className="font-bold text-gray-900 capitalize truncate">{tabTitles[activeTab]?.title || activeTab}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <a
+              href="/"
+              target="_blank"
+              rel="noreferrer"
+              className="px-3.5 py-1.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700 hover:text-black bg-white hover:bg-gray-50 transition-colors flex items-center gap-1.5 shadow-xs"
+            >
+              <span>View Site</span>
+              <ArrowUpRight size={13} />
+            </a>
           </div>
         </header>
 
-        {/* ==================================================================== */}
-        {/* TAB 1: PROJECTS */}
+        {/* Page Content Body: Generous professional side padding for dashboard workspace */}
+        <main className="flex-1 w-full px-5 sm:px-8 md:px-12 lg:px-14 xl:px-16 2xl:px-20 py-8 space-y-8">
+          
+          {/* Page Heading matching the reference screenshot */}
+          <div className="pb-2">
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
+              {tabTitles[activeTab]?.title}
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {tabTitles[activeTab]?.subtitle}
+            </p>
+          </div>
+
+          {/* TAB 1: PROJECTS */}
         {/* ==================================================================== */}
         {activeTab === "projects" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
             {/* EDITOR FORM */}
-            <div className="lg:col-span-1 order-1">
+            <div className="xl:col-span-4 2xl:col-span-3 order-1">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6 md:p-8 rounded-3xl sticky top-8">
                 <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
                   {editingProjectId ? <Pencil size={20} /> : <Plus size={20} />} 
@@ -868,12 +1162,12 @@ export default function AdminDashboard() {
             </div>
 
             {/* MANAGED PROJECTS */}
-            <div className="lg:col-span-2 order-2">
+            <div className="xl:col-span-8 2xl:col-span-9 order-2">
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><FolderOpen size={20} /> Managed Projects</h2>
-                {projects.length === 0 ? <p className="text-gray-400">No projects yet.</p> : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {projects.map((p, index) => (
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><FolderOpen size={20} /> Managed Projects ({filteredProjects.length})</h2>
+                {filteredProjects.length === 0 ? <p className="text-gray-400">No projects found.</p> : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
+                    {filteredProjects.map((p, index) => (
                       <div 
                         key={p.id} 
                         draggable={true}
@@ -928,26 +1222,26 @@ export default function AdminDashboard() {
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="glass-panel p-5 md:p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4"
+              className="glass-panel p-4 sm:p-5 md:p-6 rounded-2xl border border-gray-200 shadow-xs space-y-3 sm:space-y-4"
             >
-              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div className={`p-3 rounded-xl flex-shrink-0 ${photoSettings.show_photography ? "bg-black text-white" : "bg-gray-200 text-gray-700"}`}>
-                    {photoSettings.show_photography ? <Eye size={20} /> : <EyeOff size={20} />}
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 sm:gap-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2.5 sm:p-3 rounded-xl shrink-0 ${photoSettings.show_photography ? "bg-black text-white" : "bg-gray-200 text-gray-700"}`}>
+                    {photoSettings.show_photography ? <Eye size={18} /> : <EyeOff size={18} />}
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="text-base md:text-lg font-bold text-black">Photography Section</h2>
+                      <h2 className="text-sm sm:text-base md:text-lg font-bold text-black truncate">Photography Section</h2>
                       
-                      <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                      <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
                         photoSettings.show_photography ? "bg-black text-white" : "bg-gray-200 text-gray-600"
                       }`}>
-                        {photoSettings.show_photography ? "Live on Website" : "Hidden (Interview Mode)"}
+                        {photoSettings.show_photography ? "Live on Site" : "Hidden"}
                       </span>
 
                       {/* Cloud Sync Status Badge */}
                       <span 
-                        className={`inline-flex items-center gap-1.5 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                        className={`inline-flex items-center gap-1 text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
                           cloudStatus.connected 
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200/70" 
                             : "bg-amber-50 text-amber-700 border border-amber-200/70"
@@ -958,7 +1252,7 @@ export default function AdminDashboard() {
                         {cloudStatus.checking ? "Checking..." : cloudStatus.connected ? "Cloud Synced" : "Local Only"}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5 line-clamp-2 sm:line-clamp-none">
                       {photoSettings.show_photography 
                         ? "Visible on Navbar, Footer, and live at /photography for business cards." 
                         : "Hidden from site navigation. Ideal when preparing for technical engineering interviews."}
@@ -966,74 +1260,78 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center gap-2 w-full lg:w-auto flex-wrap sm:flex-nowrap">
-                  {/* Cloud Sync Button */}
-                  <button
-                    type="button"
-                    onClick={handleSyncLocalToCloud}
-                    disabled={isSyncingToCloud || !cloudStatus.connected}
-                    className={`px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 border shadow-xs active:scale-95 cursor-pointer ${
-                      cloudStatus.connected
-                        ? "bg-white hover:bg-gray-50 border-gray-200 text-gray-700 hover:text-black"
-                        : "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
-                    }`}
-                    title={cloudStatus.connected ? "Sync photos to Supabase Cloud" : "Connect database first to sync"}
-                  >
-                    {isSyncingToCloud ? (
-                      <Loader2 size={13} className="animate-spin text-black" />
-                    ) : (
-                      <CloudUpload size={14} className={cloudStatus.connected ? "text-emerald-600" : "text-gray-400"} />
-                    )}
-                    <span>{isSyncingToCloud ? "Syncing..." : "Sync Photos"}</span>
-                  </button>
-
-                  {/* Re-verify Connection */}
-                  <button
-                    type="button"
-                    onClick={checkCloud}
-                    disabled={cloudStatus.checking}
-                    className="p-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl text-gray-600 hover:text-black transition-colors cursor-pointer shadow-xs active:scale-95"
-                    title="Check Supabase Connection"
-                  >
-                    <RefreshCw size={14} className={cloudStatus.checking ? "animate-spin text-emerald-600" : ""} />
-                  </button>
-
-                  {/* Toggle Visibility */}
+                {/* Action Buttons: Responsive 2-tier on mobile, single row on desktop */}
+                <div className="w-full lg:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  {/* Primary Toggle: Prominent & full-width on mobile */}
                   <button
                     onClick={handleTogglePhotography}
                     disabled={isTogglingVisibility}
-                    className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95 cursor-pointer ${
+                    className={`w-full sm:w-auto px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-xs active:scale-95 cursor-pointer order-1 sm:order-2 ${
                       photoSettings.show_photography
                         ? "bg-gray-100 hover:bg-gray-200 text-gray-800"
                         : "bg-black hover:bg-gray-800 text-white"
                     }`}
                   >
                     {isTogglingVisibility ? (
-                      <Loader2 size={14} className="animate-spin" />
+                      <Loader2 size={13} className="animate-spin" />
                     ) : photoSettings.show_photography ? (
                       <>
-                        <EyeOff size={14} />
-                        Hide Photography
+                        <EyeOff size={13} />
+                        <span>Hide Photography</span>
                       </>
                     ) : (
                       <>
-                        <Eye size={14} />
-                        Show Photography
+                        <Eye size={13} />
+                        <span>Show Photography</span>
                       </>
                     )}
                   </button>
 
-                  {/* Preview Page */}
-                  <a 
-                    href="/photography" 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="p-2.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 rounded-xl text-gray-600 hover:text-black transition-colors"
-                    title="Preview Photography Page"
-                  >
-                    <ExternalLink size={15} />
-                  </a>
+                  {/* Utility tools: Sits in clean balanced row on mobile */}
+                  <div className="flex items-center gap-2 w-full sm:w-auto order-2 sm:order-1">
+                    {/* Cloud Sync Button */}
+                    <button
+                      type="button"
+                      onClick={handleSyncLocalToCloud}
+                      disabled={isSyncingToCloud || !cloudStatus.connected}
+                      className={`flex-1 sm:flex-none px-3 py-2 sm:py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 border shadow-xs active:scale-95 cursor-pointer ${
+                        cloudStatus.connected
+                          ? "bg-white hover:bg-gray-50 border-gray-200 text-gray-700 hover:text-black"
+                          : "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
+                      }`}
+                      title={cloudStatus.connected ? "Sync photos to Supabase Cloud" : "Connect database first to sync"}
+                    >
+                      {isSyncingToCloud ? (
+                        <Loader2 size={13} className="animate-spin text-black" />
+                      ) : (
+                        <CloudUpload size={13} className={cloudStatus.connected ? "text-emerald-600" : "text-gray-400"} />
+                      )}
+                      <span className="whitespace-nowrap">{isSyncingToCloud ? "Syncing..." : "Sync Photos"}</span>
+                    </button>
+
+                    {/* Re-verify Connection */}
+                    <button
+                      type="button"
+                      onClick={checkCloud}
+                      disabled={cloudStatus.checking}
+                      className="p-2 sm:p-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl text-gray-600 hover:text-black transition-colors cursor-pointer shadow-xs active:scale-95 shrink-0"
+                      title="Check Supabase Connection"
+                    >
+                      <RefreshCw size={13} className={cloudStatus.checking ? "animate-spin text-emerald-600" : ""} />
+                    </button>
+
+                    {/* Preview Page */}
+                    <a 
+                      href="/photography" 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="flex-1 sm:flex-none px-3 py-2 sm:py-2.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 rounded-xl text-gray-600 hover:text-black transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold shadow-xs"
+                      title="Preview Photography Page"
+                    >
+                      <ExternalLink size={13} />
+                      <span className="sm:hidden">Preview</span>
+                    </a>
+                  </div>
                 </div>
               </div>
 
@@ -1068,10 +1366,10 @@ export default function AdminDashboard() {
             </motion.div>
 
             {/* 2. MAIN PHOTOGRAPHY GRID: Photo Editor Form (Left) & Gallery Manager (Right) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
               
               {/* LEFT COLUMN: Photo Upload / Edit Form */}
-              <div className="lg:col-span-1">
+              <div className="xl:col-span-4 2xl:col-span-3">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6 md:p-8 rounded-3xl sticky top-8">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-bold flex items-center gap-2">
@@ -1217,11 +1515,11 @@ export default function AdminDashboard() {
               </div>
 
               {/* RIGHT COLUMN: Pure Focus on Showcase Gallery Manager */}
-              <div className="lg:col-span-2 space-y-4">
+              <div className="xl:col-span-8 2xl:col-span-9 space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                   <div>
                     <h3 className="text-xl font-bold flex items-center gap-2">
-                      <Camera size={20} /> Showcase Gallery ({photos.length} {photos.length === 1 ? "photo" : "photos"})
+                      <Camera size={20} /> Showcase Gallery ({filteredPhotos.length} {filteredPhotos.length === 1 ? "photo" : "photos"})
                     </h3>
                     <p className="text-xs md:text-sm text-gray-500">
                       Add as many photos as you want without limits. Drag to reorder, edit, or delete at any time.
@@ -1247,13 +1545,13 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {photos.length === 0 ? (
+                {filteredPhotos.length === 0 ? (
                   <div className="p-8 text-center bg-white/40 rounded-2xl border border-gray-200 text-gray-400">
-                    No photos in showcase yet. Use the form on the left to add one!
+                    No photos found in showcase.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {photos.map((photo, index) => (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-4">
+                    {filteredPhotos.map((photo, index) => (
                       <div 
                         key={photo.id} 
                         draggable={true}
@@ -1331,74 +1629,94 @@ export default function AdminDashboard() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="glass-panel p-5 md:p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+              className="glass-panel p-4 sm:p-5 md:p-6 rounded-2xl border border-gray-200 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4"
             >
-              <div className="flex items-center gap-3.5">
-                <div className="p-3 rounded-xl bg-black text-white">
-                  <User size={20} />
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-black text-white shrink-0">
+                  <User size={18} />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-base md:text-lg font-bold text-black">About Page Customization</h2>
-                    <span className="text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-sm sm:text-base md:text-lg font-bold text-black truncate">About Page Customization</h2>
+                    <span className="text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/70">
                       Live Editable
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5 line-clamp-2 sm:line-clamp-none">
                     Customize your profile portrait, headline, engineering experience, photography track, and education.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
-                <button
-                  type="button"
-                  onClick={handleResetAbout}
-                  className="px-3.5 py-2.5 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-600 hover:text-red-600 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
-                  title="Restore default sample information"
-                >
-                  <RotateCcw size={14} />
-                  <span>Reset Defaults</span>
-                </button>
-
-                <a
-                  href="/about"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-2.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 rounded-xl text-gray-600 hover:text-black transition-colors"
-                  title="Preview About Page"
-                >
-                  <ExternalLink size={15} />
-                </a>
-
+              {/* Action Buttons: Responsive 2-tier on mobile, single row on desktop */}
+              <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                {/* Mobile: Full-width Save Changes */}
                 <button
                   type="button"
                   onClick={() => handleSaveAbout()}
                   disabled={isSavingAbout}
-                  className="px-5 py-2.5 bg-black hover:bg-gray-800 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95 cursor-pointer flex-1 sm:flex-none"
+                  className="w-full sm:w-auto px-5 py-2 sm:py-2.5 bg-black hover:bg-gray-800 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs active:scale-95 cursor-pointer order-1 sm:order-2 whitespace-nowrap"
                 >
-                  {isSavingAbout ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-                  <span>{isSavingAbout ? "Saving..." : "Save All Changes"}</span>
+                  {isSavingAbout ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} className="text-emerald-400" />}
+                  <span>{isSavingAbout ? "Saving..." : "Save Changes"}</span>
                 </button>
+
+                {/* Mobile: Row 2 with Reset & Preview */}
+                <div className="flex items-center gap-2 w-full sm:w-auto order-2 sm:order-1">
+                  <button
+                    type="button"
+                    onClick={handleResetAbout}
+                    className="flex-1 sm:flex-none px-3 py-2 sm:py-2.5 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-600 hover:text-red-600 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 whitespace-nowrap shadow-xs"
+                    title="Restore default sample information"
+                  >
+                    <RotateCcw size={13} />
+                    <span>Reset Defaults</span>
+                  </button>
+
+                  <a
+                    href="/about"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 sm:flex-none px-3 py-2 sm:py-2.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 rounded-xl text-gray-600 hover:text-black transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold shadow-xs"
+                    title="Preview About Page"
+                  >
+                    <ExternalLink size={13} />
+                    <span className="sm:hidden">Preview</span>
+                  </a>
+                </div>
               </div>
             </motion.div>
 
             {/* Grid 1: Profile Portrait & Biography */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
               {/* Profile Photo Card */}
-              <div className="lg:col-span-1">
+              <div className="xl:col-span-4 2xl:col-span-3">
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6 rounded-3xl sticky top-8 space-y-4">
                   <h3 className="text-lg font-bold flex items-center gap-2">
                     <User size={18} /> Profile Portrait
                   </h3>
                   
-                  <div className="relative aspect-[4/5] w-full max-w-[240px] mx-auto rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 shadow-sm">
+                  <div className="relative aspect-[4/5] w-full max-w-[240px] mx-auto rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 shadow-sm group">
                     {aboutData.profileImage ? (
-                      <img
-                        src={aboutData.profileImage}
-                        alt="Profile Preview"
-                        className="w-full h-full object-cover"
-                      />
+                      <>
+                        <img
+                          src={aboutData.profileImage}
+                          alt="Profile Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCropperImageSrc(aboutData.profileImage);
+                            setIsCropperOpen(true);
+                          }}
+                          className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-xs font-semibold text-xs"
+                          title="Click to crop or reframe photo"
+                        >
+                          <Crop size={22} className="text-white" />
+                          <span>Crop & Reframe</span>
+                        </button>
+                      </>
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 text-xs">
                         <User size={36} className="mb-2 opacity-50" />
@@ -1407,11 +1725,30 @@ export default function AdminDashboard() {
                     )}
                   </div>
 
+                  {aboutData.profileImage && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCropperImageSrc(aboutData.profileImage);
+                        setIsCropperOpen(true);
+                      }}
+                      className="w-full max-w-[240px] mx-auto text-xs font-bold text-gray-700 hover:text-black bg-white hover:bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    >
+                      <Crop size={14} />
+                      <span>Crop / Reframe Current Photo</span>
+                    </button>
+                  )}
+
                   <div className="space-y-3 pt-2">
                     <div>
-                      <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">
-                        Upload New Portrait:
-                      </label>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-bold uppercase text-gray-500">
+                          Upload New Portrait:
+                        </label>
+                        <span className="text-[10px] text-emerald-600 font-medium">
+                          Auto-opens Cropper
+                        </span>
+                      </div>
                       <input
                         type="file"
                         accept="image/*"
@@ -1447,7 +1784,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Biography & Headlines */}
-              <div className="lg:col-span-2">
+              <div className="xl:col-span-8 2xl:col-span-9">
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6 md:p-8 rounded-3xl space-y-5">
                   <h3 className="text-lg font-bold flex items-center gap-2">
                     <Sparkles size={18} /> Headline & Biography
@@ -1824,13 +2161,13 @@ export default function AdminDashboard() {
         {/* TAB 4: MESSAGES */}
         {/* ==================================================================== */}
         {activeTab === "messages" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 max-w-4xl mx-auto">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 max-w-4xl">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><MessageSquare size={20} /> Contact Inbox</h2>
-            {messages.length === 0 ? (
-              <p className="text-gray-400 text-center py-12">No messages received yet.</p>
+            {filteredMessages.length === 0 ? (
+              <p className="text-gray-400 text-center py-12">No messages found.</p>
             ) : (
-              messages.map((msg) => (
-                <div key={msg.id} className="bg-white/80 p-6 rounded-2xl border border-gray-100 shadow-sm relative">
+              filteredMessages.map((msg) => (
+                <div key={msg.id} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs relative">
                   <button onClick={() => handleDelete("messages", msg.id)} className="absolute top-4 right-4 text-gray-300 hover:text-red-500 p-2 cursor-pointer transition-colors"><Trash2 size={18} /></button>
                   <h3 className="font-bold text-lg pr-8">{msg.name}</h3>
                   <a href={`mailto:${msg.email}`} className="text-sm text-blue-600 block mb-2">{msg.email}</a>
@@ -1841,7 +2178,17 @@ export default function AdminDashboard() {
           </motion.div>
         )}
 
+        </main>
       </div>
+
+      {/* Interactive Profile Photo Cropper Modal */}
+      <ImageCropperModal
+        isOpen={isCropperOpen}
+        imageSrc={cropperImageSrc}
+        onClose={() => setIsCropperOpen(false)}
+        onCropComplete={handleProfileCropComplete}
+        aspectRatioPreset={4 / 5}
+      />
     </div>
   );
 }
