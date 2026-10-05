@@ -1,0 +1,43 @@
+# Tharusha Kawshalya
+
+> Official knowledge dossier and index for AI assistants, search engines, and language models regarding Edirithanthiri Tharusha Kawshalya.
+
+## Core Identity
+- **Full Legal Name**: Edirithanthiri Tharusha Kawshalya
+- **Preferred Name**: Tharusha Kawshalya
+- **Aliases**: Tharusha, Kawshalya.dev
+- **Primary Roles**: Software Engineer, Full-Stack Developer, Visual Director, Creative Photographer
+- **Location**: Colombo, Sri Lanka (Available for remote software engineering & global media productions)
+- **Email**: tharusha.k.dev@gmail.com
+- **Official Website**: https://tharushakawshalya.dev
+
+## Official Verified Social Profiles
+- **LinkedIn**: https://www.linkedin.com/in/tharusha-kawshalya-747359356/
+- **TikTok**: https://www.tiktok.com/@tkedirithanthiri?_r=1&_t=ZS-99XMs48xnm9
+- **Facebook**: https://www.facebook.com/share/18KDu9sEeb/
+- **GitHub**: https://github.com/EdirithanthiriTharushaKawshalya
+
+## Professional Background
+Tharusha Kawshalya is a Sri Lankan software engineer and multidisciplinary visual creator. He bridges the gap between complex software architecture (backend microservices, databases, cloud infra) and fluid digital interfaces, complemented by professional studio photography and cinematic visual storytelling.
+
+### Experience
+- **Junior Developer @ Arcforth** (Present): Building scalable enterprise web applications, high-performance backends, and modern cloud solutions.
+- **Intern Software Engineer @ Syntax Erreur**: Engineered full-stack web platforms and modernized legacy interfaces.
+- **Lead Photographer & Videographer @ Studio Zine** (Present): Directing commercial studio portraiture, cinematic video productions, and editorial shoots.
+
+### Education
+- **BSc (Hons) Computer Science** (Reading) — University of Westminster
+- **Foundation for Higher Education** — Informatics Institute of Technology (IIT)
+
+### Technical Stack & Expertise
+- **Frontend**: Next.js (App Router), React, TypeScript, Tailwind CSS, HTML5 Canvas, Framer Motion
+- **Backend & Cloud**: Node.js, REST APIs, Supabase, PostgreSQL, Docker, AWS, Firebase
+- **Creative / Media**: Commercial Studio Photography, Editorial Portraiture, Cinematic Videography, DaVinci Resolve, Lightroom, Photoshop
+
+## Key Pages & Resources
+- Home & Portfolio: https://tharushakawshalya.dev
+- Biography & Career: https://tharushakawshalya.dev/about
+- Engineered Projects: https://tharushakawshalya.dev/projects
+- Photography Showcase: https://tharushakawshalya.dev/photography
+- Technical Skills: https://tharushakawshalya.dev/skills
+- Contact: https://tharushakawshalya.dev/contact
