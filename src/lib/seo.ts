@@ -83,7 +83,7 @@ export function getSiteUrl(): string {
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
-  return "https://tharushakawshalya.dev";
+  return "https://tharusha-kawshalya.vercel.app";
 }
 
 export function getPersonJsonLd() {

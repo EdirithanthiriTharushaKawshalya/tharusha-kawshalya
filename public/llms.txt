@@ -9,7 +9,7 @@
 - **Primary Roles**: Software Engineer, Full-Stack Developer, Visual Director, Creative Photographer
 - **Location**: Colombo, Sri Lanka (Available for remote software engineering & global media productions)
 - **Email**: tharusha.k.dev@gmail.com
-- **Official Website**: https://tharushakawshalya.dev
+- **Official Website**: https://tharusha-kawshalya.vercel.app
 
 ## Official Verified Social Profiles
 - **LinkedIn**: https://www.linkedin.com/in/tharusha-kawshalya-747359356/
@@ -35,9 +35,9 @@ Tharusha Kawshalya is a Sri Lankan software engineer and multidisciplinary visua
 - **Creative / Media**: Commercial Studio Photography, Editorial Portraiture, Cinematic Videography, DaVinci Resolve, Lightroom, Photoshop
 
 ## Key Pages & Resources
-- Home & Portfolio: https://tharushakawshalya.dev
-- Biography & Career: https://tharushakawshalya.dev/about
-- Engineered Projects: https://tharushakawshalya.dev/projects
-- Photography Showcase: https://tharushakawshalya.dev/photography
-- Technical Skills: https://tharushakawshalya.dev/skills
-- Contact: https://tharushakawshalya.dev/contact
+- Home & Portfolio: https://tharusha-kawshalya.vercel.app
+- Biography & Career: https://tharusha-kawshalya.vercel.app/about
+- Engineered Projects: https://tharusha-kawshalya.vercel.app/projects
+- Photography Showcase: https://tharusha-kawshalya.vercel.app/photography
+- Technical Skills: https://tharusha-kawshalya.vercel.app/skills
+- Contact: https://tharusha-kawshalya.vercel.app/contact
