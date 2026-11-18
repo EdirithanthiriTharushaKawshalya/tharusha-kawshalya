@@ -2,6 +2,19 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Research papers
+
+Run `supabase_research_setup.sql` in your Supabase project's SQL Editor before
+uploading research papers. It adds the project attachment column and a public
+`research-papers` bucket restricted to PDFs up to 20 MB, with writes restricted
+to authenticated accounts (the site's existing admin model).
+
+In the admin project editor, select **Research | AI** to attach an optional paper.
+Save the project to upload or replace the PDF. The project details page shows
+**Read Research Paper** when an attachment is present. Removing a paper detaches
+it when you save; previous files remain in Storage and can be removed there if
+no longer needed. Changing category hides the paper and retains its attachment.
+
 First, run the development server:
 
 ```bash

@@ -15,7 +15,7 @@ interface Project {
   image?: string;
 }
 
-const categories = ["All", "Fullstack", "Frontend", "Backend", "Mobile"];
+const categories = ["All", "Fullstack", "Frontend", "Backend", "Mobile", "Research | AI"];
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);

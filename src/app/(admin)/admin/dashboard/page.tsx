@@ -39,8 +39,9 @@ import {
   EducationItem,
 } from "@/lib/about";
 import { useToast } from "@/components/ui/ToastProvider";
+import { validateResearchPaper, RESEARCH_PAPERS_BUCKET } from "@/lib/research";
 
-const PROJECT_CATEGORIES = ["Fullstack", "Frontend", "Backend", "Mobile", "UI/UX"];
+const PROJECT_CATEGORIES = ["Fullstack", "Frontend", "Backend", "Mobile", "UI/UX", "Research | AI"];
 const PHOTO_CATEGORIES = ["Portraits", "Street", "Studio", "Events", "Automotive", "Landscape", "Editorial"];
 
 export default function AdminDashboard() {
@@ -79,8 +80,11 @@ export default function AdminDashboard() {
     link: "",
     github: "",
     image: "",
+    research_paper_url: "",
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [researchPaperFile, setResearchPaperFile] = useState<File | null>(null);
+  const [paperInputKey, setPaperInputKey] = useState(0);
 
   // Photography State
   const [photoSettings, setPhotoSettings] = useState<PhotographySettings>(DEFAULT_SETTINGS);
@@ -189,7 +193,11 @@ export default function AdminDashboard() {
       link: p.link || "",
       github: p.github || "",
       image: p.image || "",
+      research_paper_url: p.research_paper_url || "",
     });
+    setImageFile(null);
+    setResearchPaperFile(null);
+    setPaperInputKey(key => key + 1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -203,8 +211,11 @@ export default function AdminDashboard() {
       link: "",
       github: "",
       image: "",
+      research_paper_url: "",
     });
     setImageFile(null);
+    setResearchPaperFile(null);
+    setPaperInputKey(key => key + 1);
   };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -246,7 +257,21 @@ export default function AdminDashboard() {
     if (!projectFormData.title || !projectFormData.description) return;
     setIsSubmitting(true);
 
+    let uploadedPaperPath: string | null = null;
     try {
+      const isResearch = projectFormData.category === "Research | AI";
+      let researchPaperUrl = projectFormData.research_paper_url;
+      if (isResearch && researchPaperFile) {
+        await validateResearchPaper(researchPaperFile);
+        const path = `papers/${crypto.randomUUID()}.pdf`;
+        const { error } = await supabase.storage
+          .from(RESEARCH_PAPERS_BUCKET)
+          .upload(path, researchPaperFile, { contentType: "application/pdf", upsert: false });
+        if (error) throw new Error(`Paper upload failed: ${error.message}. Check the research paper storage setup.`);
+        uploadedPaperPath = path;
+        researchPaperUrl = supabase.storage.from(RESEARCH_PAPERS_BUCKET).getPublicUrl(path).data.publicUrl;
+      }
+
       let imageUrl = projectFormData.image || "";
 
       if (imageFile) {
@@ -278,6 +303,9 @@ export default function AdminDashboard() {
         link: projectFormData.link || null,
         github: projectFormData.github || null,
         image: imageUrl || null,
+        // Ordinary projects can still save before the research migration is applied.
+        ...(isResearch || researchPaperUrl || projects.some(p => p.id === editingProjectId && p.research_paper_url)
+          ? { research_paper_url: researchPaperUrl || null } : {}),
       };
 
       if (editingProjectId) {
@@ -303,8 +331,14 @@ export default function AdminDashboard() {
       handleCancelProjectEdit();
       fetchData();
     } catch (error) {
+      // A failed project save must not leave its newly uploaded PDF behind.
+      if (uploadedPaperPath) {
+        const { error: cleanupError } = await supabase.storage.from(RESEARCH_PAPERS_BUCKET).remove([uploadedPaperPath]);
+        if (cleanupError) console.error("Could not clean up research paper:", cleanupError);
+      }
       console.error("Error saving project: ", error);
-      showToast("Error saving project. Please try again.", "error");
+      const detail = error && typeof error === "object" && "message" in error ? String(error.message) : "Please try again.";
+      showToast(`Error saving project: ${detail}`, "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -1085,6 +1119,7 @@ export default function AdminDashboard() {
                   {editingProjectId ? "Edit Project" : "New Project"}
                 </h2>
                 <form onSubmit={handleAddProject} className="flex flex-col gap-4">
+                  <fieldset disabled={isSubmitting} className="flex flex-col gap-4 min-w-0">
                   {/* Image Upload Input */}
                   <div>
                     <label className="text-xs font-bold uppercase text-gray-400 mb-1 block">
@@ -1139,6 +1174,46 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
+                  {projectFormData.category === "Research | AI" && (
+                    <div className="rounded-2xl border border-gray-200 bg-white/50 p-4 space-y-3">
+                      <div>
+                        <label htmlFor="research-paper" className="text-xs font-bold uppercase text-gray-500 block">Research Paper (optional)</label>
+                        <p id="research-paper-help" className="text-sm text-gray-500 mt-1">Upload a PDF up to 20 MB. Visitors can read it from the project page after you save.</p>
+                      </div>
+                      {projectFormData.research_paper_url && (
+                        <a href={projectFormData.research_paper_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium underline underline-offset-4">
+                          View current paper <ExternalLink size={14} />
+                        </a>
+                      )}
+                      <input
+                        key={paperInputKey}
+                        id="research-paper"
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        aria-describedby="research-paper-help"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          if (file && (!file.name.toLowerCase().endsWith(".pdf") || file.size > 20 * 1024 * 1024 || file.size === 0)) {
+                            showToast("Choose a non-empty PDF up to 20 MB.", "error");
+                            e.target.value = "";
+                            setResearchPaperFile(null);
+                            return;
+                          }
+                          setResearchPaperFile(file);
+                        }}
+                        className="block w-full min-w-0 text-sm file:mr-2 file:py-2 file:px-3 file:rounded-full file:border-0 file:font-semibold file:bg-black file:text-white"
+                      />
+                      {researchPaperFile && <p className="text-sm text-gray-600 break-words">Ready to save: {researchPaperFile.name}</p>}
+                      {(projectFormData.research_paper_url || researchPaperFile) && (
+                        <button type="button" onClick={() => {
+                          setProjectFormData({ ...projectFormData, research_paper_url: "" });
+                          setResearchPaperFile(null);
+                          setPaperInputKey(key => key + 1);
+                        }} className="text-sm text-red-600 hover:underline">Remove paper from project</button>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex gap-3">
                     <button type="submit" disabled={isSubmitting} className="flex-1 bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-all mt-2 flex justify-center items-center gap-2 active:scale-95 cursor-pointer">
                       {isSubmitting ? (
@@ -1157,6 +1232,7 @@ export default function AdminDashboard() {
                       </button>
                     )}
                   </div>
+                  </fieldset>
                 </form>
               </motion.div>
             </div>
