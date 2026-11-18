@@ -157,13 +157,10 @@ export default function ProjectDetailsPage() {
                     href={project.research_paper_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between gap-3 bg-white text-black hover:bg-gray-100 p-4 rounded-xl transition-colors"
+                    className="flex items-center justify-between gap-2 bg-white text-black hover:bg-gray-100 px-2 py-3 rounded-xl text-sm md:text-xs lg:text-sm transition-colors"
                   >
-                    <span>
-                      <span className="block font-medium">Read Research Paper</span>
-                      <span className="block text-xs text-gray-500 mt-1">PDF · Opens in a new tab</span>
-                    </span>
-                    <FileText size={20} className="shrink-0" />
+                    <span className="whitespace-nowrap font-medium">Read Research Paper</span>
+                    <FileText size={16} className="shrink-0" />
                   </a>
                 )}
                 {project.link && (
