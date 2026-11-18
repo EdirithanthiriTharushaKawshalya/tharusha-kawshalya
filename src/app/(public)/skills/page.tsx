@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { Layout, Database, Terminal, Cpu, Cloud, Bot, CircuitBoard, Sparkles } from "lucide-react";
+import { Layout, Database, Terminal, Cpu, Cloud, Bot, CircuitBoard, Sparkles, AppWindow } from "lucide-react";
 
 const skillCategories = [
   {
@@ -53,6 +53,32 @@ const skillCategories = [
       "Microservices Architecture",
       "Postman & API Testing",
       "npm / pnpm / yarn"
+    ],
+  },
+  {
+    id: "ai-computer-vision",
+    title: "AI & Computer Vision",
+    icon: <Sparkles size={24} />,
+    description: "Building image processing pipelines, object and face detection, and image quality evaluation.",
+    skills: [
+      "Python",
+      "PyTorch / torchvision",
+      "SSDLite MobileNetV3",
+      "RetinaFace (facexlib)",
+      "Pillow & NumPy",
+      "PyIQA (MUSIQ benchmark)"
+    ],
+  },
+  {
+    id: "python-applications",
+    title: "Python Applications & Delivery",
+    icon: <AppWindow size={24} />,
+    description: "Creating desktop and interactive web applications, testing workflows, and distributable installers.",
+    skills: [
+      "Tkinter",
+      "Streamlit",
+      "pytest",
+      "PyInstaller & Inno Setup"
     ],
   },
   {
@@ -122,7 +148,7 @@ export default function SkillsPage() {
           </p>
         </motion.div>
 
-        {/* 4 CATEGORIES IN BALANCED 2x2 GRID */}
+        {/* Skill categories in a responsive two-column grid */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
